@@ -1,0 +1,16 @@
+[files]
+extend-exclude = [
+  "**.svg",
+  "**.html",
+  "**.png",
+  "**.jpg",
+  "**.jpeg",
+  "**.git",
+  "**.pdf",
+  "**.xlsx",
+  "**.csv",
+  "**.drawio",
+  "**.json",
+  "**.txt",
+  "**.ipynb",
+]

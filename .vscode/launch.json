@@ -1,0 +1,45 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Python: Current File",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Python: Current Module",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "${command:extension.commandvariable.file.relativeDirDots}.${fileBasenameNoExtension}",
+      "console": "integratedTerminal",
+      "justMyCode": true
+    },
+    {
+      "name": "Powershell: Launch Current File",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${file}",
+      "cwd": "${file}",
+      "args": []
+    },
+    {
+      "name": "Powershell: Launch Current File w/Args Prompt",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${file}",
+      "cwd": "${file}",
+      "args": ["${command:SpecifyScriptArgs}", "${workspaceFolder}"]
+    },
+    {
+      "name": "Powershell: Launch Current File w repository arg set",
+      "type": "PowerShell",
+      "request": "launch",
+      "script": "${file}",
+      "cwd": "${file}",
+      "args": ["-repository", "${workspaceFolder}"]
+    }
+  ]
+}
