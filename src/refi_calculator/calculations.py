@@ -249,6 +249,11 @@ def analyze_refinance(
     current_after_tax_total_interest = current_loan.total_interest * (1 - marginal_tax_rate)
     new_after_tax_total_interest = new_loan.total_interest * (1 - marginal_tax_rate)
 
+    accelerated_months: int | None = None
+    accelerated_total_interest: float | None = None
+    accelerated_interest_savings: float | None = None
+    accelerated_time_savings_months: int | None = None
+
     # Accelerated payoff calculations (if maintaining current payment)
     if maintain_payment and current_loan.monthly_payment > new_loan.monthly_payment:
         # User wants to keep paying the old (higher) amount
