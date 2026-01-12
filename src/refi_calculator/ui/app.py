@@ -581,9 +581,9 @@ class RefinanceCalculatorApp:
 def main() -> None:
     """Main driver function to run the refinance calculator app."""
     root = tk.Tk()
-    root.geometry("520x720")
+    root.geometry("640x840")
     root.resizable(True, True)
-    root.minsize(480, 600)
+    root.minsize(560, 720)
     RefinanceCalculatorApp(root)
     root.mainloop()
 
