@@ -57,8 +57,6 @@ Add new tests under `tests/` following the `test_*.py` pattern whenever you enha
 
 ## Contributing
 
-- Follow the [`AGENTS.md`](AGENTS.md) guidelines for AI-assisted work (module headers,
-  docstrings, logging, etc.).
 - Keep imports grouped by functionality (allow isort to do the heavy lifting through pre-commit).
 - Update or add tests in `tests/` before opening a pull request.
 - Run `poetry run pre-commit run --all-files` to catch formatting/lint issues early.
