@@ -4,21 +4,19 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from ..app import RefinanceCalculatorApp
+from ..app import RefinanceCalculatorApp
 
 
-def build_background_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_background_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build background information scroll area.
 
     Args:
         app: Application instance that displays the background text.
         parent: Frame that hosts the scrollable background content.
-
-    Returns:
-        None.
     """
     canvas = tk.Canvas(parent, highlightthickness=0)
     scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
@@ -97,15 +95,15 @@ def build_background_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None
         ).pack(anchor=tk.W, padx=(10, 0), pady=(0, 5))
 
 
-def build_help_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_help_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build help info tab UI.
 
     Args:
         app: Application instance that displays the help text.
         parent: Frame that hosts the scrollable help content.
-
-    Returns:
-        None.
     """
     canvas = tk.Canvas(parent, highlightthickness=0)
     scrollbar = ttk.Scrollbar(parent, orient="vertical", command=canvas.yview)
@@ -183,7 +181,10 @@ def build_help_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
         ).pack(anchor=tk.W, padx=(10, 0), pady=(0, 5))
 
 
-__all__ = ["build_background_tab", "build_help_tab"]
+__all__ = [
+    "build_background_tab",
+    "build_help_tab",
+]
 
 __description__ = """
 Builders for the background and help tabs.

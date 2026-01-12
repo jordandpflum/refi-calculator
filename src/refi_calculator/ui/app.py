@@ -19,6 +19,7 @@ from .builders.info_tab import build_background_tab, build_help_tab
 from .builders.main_tab import build_main_tab
 from .builders.options_tab import build_options_tab
 from .builders.visuals_tab import build_amortization_tab, build_chart_tab
+from .chart import SavingsChart
 
 # ruff: noqa: PLR0915, PLR0912
 
@@ -29,7 +30,127 @@ INFO_TAB_INDEX = 4
 
 
 class RefinanceCalculatorApp:
-    """Refinance Calculator Application."""
+    """Refinance Calculator Application.
+
+    Attributes:
+        root: Root Tkinter window
+        current_analysis: Current refinance analysis results
+        sensitivity_data: Sensitivity analysis data
+        holding_period_data: Holding period analysis data
+        amortization_data: Amortization comparison data
+        current_balance: Current loan balance input
+        current_rate: Current loan interest rate input
+        current_remaining: Current loan remaining term input
+        new_rate: New loan interest rate input
+        new_term: New loan term input
+        closing_costs: Closing costs input
+        cash_out: Cash-out amount input
+        opportunity_rate: Opportunity cost rate input
+        marginal_tax_rate: Marginal tax rate input
+        npv_window_years: NPV calculation window input
+        chart_horizon_years: Chart horizon years input
+        sensitivity_max_reduction: Sensitivity max rate reduction input
+        sensitivity_step: Sensitivity rate step input
+        maintain_payment: Maintain current payment option
+        _calc_canvas: Canvas for the calculator tab
+        sens_tree: Treeview for sensitivity analysis
+        holding_tree: Treeview for holding period analysis
+        amort_tree: Treeview for amortization comparison
+        _background_canvas: Canvas for background info tab
+        _help_canvas: Canvas for help info tab
+        chart: Savings chart component
+        pay_frame: Frame for payment results
+        balance_frame: Frame for balance results
+        current_pmt_label: Label for current payment result
+        new_pmt_label: Label for new payment result
+        savings_label: Label for monthly savings result
+        new_balance_label: Label for new loan balance result
+        cash_out_label: Label for cash-out amount result
+        simple_be_label: Label for simple breakeven result
+        npv_be_label: Label for NPV breakeven result
+        curr_int_label: Label for current total interest result
+        new_int_label: Label for new total interest result
+        int_delta_label: Label for interest delta result
+        tax_section_label: Label for after-tax section title
+        at_current_pmt_label: Label for after-tax current payment result
+        at_new_pmt_label: Label for after-tax new payment result
+        at_savings_label: Label for after-tax monthly savings result
+        at_simple_be_label: Label for after-tax simple breakeven result
+        at_npv_be_label: Label for after-tax NPV breakeven result
+        at_int_delta_label: Label for after-tax interest delta result
+        npv_title_label: Label for NPV title
+        five_yr_npv_label: Label for 5-year NPV result
+        accel_section_frame: Frame for accelerated payoff section
+        accel_section_label: Label for accelerated payoff section title
+        accel_months_label: Label for accelerated months result
+        accel_time_saved_label: Label for accelerated time saved result
+        accel_interest_saved_label: Label for accelerated interest saved result
+        current_cost_npv_label: Label for current total cost NPV result
+        new_cost_npv_label: Label for new total cost NPV result
+        cost_npv_advantage_label: Label for total cost NPV advantage result
+        amort_curr_total_int: Label for amortization current total interest
+        amort_new_total_int: Label for amortization new total interest
+        amort_int_savings: Label for amortization interest savings
+    """
+
+    root: tk.Tk
+    current_analysis: RefinanceAnalysis | None
+    sensitivity_data: list[dict]
+    holding_period_data: list[dict]
+    amortization_data: list[dict]
+    current_balance: tk.StringVar
+    current_rate: tk.StringVar
+    current_remaining: tk.StringVar
+    new_rate: tk.StringVar
+    new_term: tk.StringVar
+    closing_costs: tk.StringVar
+    cash_out: tk.StringVar
+    opportunity_rate: tk.StringVar
+    marginal_tax_rate: tk.StringVar
+    npv_window_years: tk.StringVar
+    chart_horizon_years: tk.StringVar
+    sensitivity_max_reduction: tk.StringVar
+    sensitivity_step: tk.StringVar
+    maintain_payment: tk.BooleanVar
+    _calc_canvas: tk.Canvas
+    sens_tree: ttk.Treeview
+    holding_tree: ttk.Treeview
+    amort_tree: ttk.Treeview
+    _background_canvas: tk.Canvas
+    _help_canvas: tk.Canvas
+    chart: SavingsChart
+    pay_frame: ttk.Frame
+    balance_frame: ttk.Frame
+    current_pmt_label: ttk.Label
+    new_pmt_label: ttk.Label
+    savings_label: ttk.Label
+    new_balance_label: ttk.Label
+    cash_out_label: ttk.Label
+    simple_be_label: ttk.Label
+    npv_be_label: ttk.Label
+    curr_int_label: ttk.Label
+    new_int_label: ttk.Label
+    int_delta_label: ttk.Label
+    tax_section_label: ttk.Label
+    at_current_pmt_label: ttk.Label
+    at_new_pmt_label: ttk.Label
+    at_savings_label: ttk.Label
+    at_simple_be_label: ttk.Label
+    at_npv_be_label: ttk.Label
+    at_int_delta_label: ttk.Label
+    npv_title_label: ttk.Label
+    five_yr_npv_label: ttk.Label
+    accel_section_frame: ttk.Frame
+    accel_section_label: ttk.Label
+    accel_months_label: ttk.Label
+    accel_time_saved_label: ttk.Label
+    accel_interest_saved_label: ttk.Label
+    current_cost_npv_label: ttk.Label
+    new_cost_npv_label: ttk.Label
+    cost_npv_advantage_label: ttk.Label
+    amort_curr_total_int: ttk.Label
+    amort_new_total_int: ttk.Label
+    amort_int_savings: ttk.Label
 
     def __init__(
         self,
@@ -261,7 +382,11 @@ class RefinanceCalculatorApp:
         except ValueError:
             pass
 
-    def _update_results(self, a: RefinanceAnalysis, npv_years: int = 5) -> None:
+    def _update_results(
+        self,
+        a: RefinanceAnalysis,
+        npv_years: int = 5,
+    ) -> None:
         """Update result labels based on the given analysis.
 
         Args:
@@ -588,10 +713,10 @@ def main() -> None:
     root.mainloop()
 
 
-if __name__ == "__main__":
-    main()
-
-__all__ = ["RefinanceCalculatorApp", "main"]
+__all__ = [
+    "RefinanceCalculatorApp",
+    "main",
+]
 
 __description__ = """
 Tkinter UI for the refinance calculator application.

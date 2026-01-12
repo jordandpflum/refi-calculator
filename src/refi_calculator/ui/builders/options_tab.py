@@ -4,23 +4,20 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
-from typing import TYPE_CHECKING
 
+from ..app import RefinanceCalculatorApp
 from .helpers import add_option
 
-if TYPE_CHECKING:
-    from ..app import RefinanceCalculatorApp
 
-
-def build_options_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_options_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build the options tab for NPV/chart settings.
 
     Args:
         app: Application instance with option state.
         parent: Frame that hosts the options controls.
-
-    Returns:
-        None.
     """
     ttk.Label(parent, text="Application Options", font=("Segoe UI", 10, "bold")).pack(
         anchor=tk.W,
@@ -72,7 +69,9 @@ def build_options_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
     ).pack(anchor=tk.W)
 
 
-__all__ = ["build_options_tab"]
+__all__ = [
+    "build_options_tab",
+]
 
 __description__ = """
 Constructs the options tab controls.

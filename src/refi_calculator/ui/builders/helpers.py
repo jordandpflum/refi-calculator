@@ -22,9 +22,6 @@ def add_input(
         var: StringVar that stores the entry value.
         row: Grid row for the label/entry pair.
         on_change: Callback invoked when the value changes.
-
-    Returns:
-        None.
     """
     ttk.Label(parent, text=label).grid(row=row, column=0, sticky=tk.W, pady=3)
     entry = ttk.Entry(parent, textvariable=var, width=14)
@@ -48,9 +45,6 @@ def add_option(
         var: StringVar associated with the option entry.
         row: Row index inside the grid layout.
         tooltip: Supplemental explanation shown alongside input.
-
-    Returns:
-        None.
     """
     ttk.Label(parent, text=label).grid(row=row, column=0, sticky=tk.W, pady=6)
     entry = ttk.Entry(parent, textvariable=var, width=10)
@@ -62,7 +56,11 @@ def add_option(
     )
 
 
-def result_block(parent: ttk.Frame, title: str, col: int) -> ttk.Label:
+def result_block(
+    parent: ttk.Frame,
+    title: str,
+    col: int,
+) -> ttk.Label:
     """Create a title + value display block within a row.
 
     Args:
@@ -81,7 +79,11 @@ def result_block(parent: ttk.Frame, title: str, col: int) -> ttk.Label:
     return label
 
 
-__all__ = ["add_input", "add_option", "result_block"]
+__all__ = [
+    "add_input",
+    "add_option",
+    "result_block",
+]
 
 __description__ = """
 Shared helpers for building Tkinter tabs.

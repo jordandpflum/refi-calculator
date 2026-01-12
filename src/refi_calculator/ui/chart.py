@@ -6,7 +6,17 @@ import tkinter as tk
 
 
 class SavingsChart(tk.Canvas):
-    """Canvas that draws cumulative savings / NPV trends."""
+    """Canvas that draws cumulative savings / NPV trends.
+
+    Attributes:
+        width: Canvas width.
+        height: Canvas height.
+        padding: Padding around the plot area.
+    """
+
+    width: int
+    height: int
+    padding: dict[str, int]
 
     def __init__(
         self,
@@ -31,14 +41,24 @@ class SavingsChart(tk.Canvas):
         )
         self.width = width
         self.height = height
-        self.padding = {"left": 60, "right": 20, "top": 20, "bottom": 40}
+        self.padding = {
+            "left": 60,
+            "right": 20,
+            "top": 20,
+            "bottom": 40,
+        }
 
     def plot(
         self,
         data: list[tuple[int, float, float]],
         breakeven: int | None,
     ) -> None:
-        """Plot cumulative savings tuples and optional breakeven marker."""
+        """Plot cumulative savings tuples and optional breakeven marker.
+
+        Args:
+            data: List of (month, nominal savings, NPV savings) tuples.
+            breakeven: Optional breakeven month to mark on the chart.
+        """
         self.delete("all")
         min_number_of_data_points = 2
         if len(data) < min_number_of_data_points:
@@ -166,7 +186,9 @@ class SavingsChart(tk.Canvas):
         )
 
 
-__all__ = ["SavingsChart"]
+__all__ = [
+    "SavingsChart",
+]
 
 __description__ = """
 Canvas helper for cumulative savings / NPV visuals.

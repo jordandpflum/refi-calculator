@@ -6,23 +6,20 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
-from typing import TYPE_CHECKING
 
+from ..app import RefinanceCalculatorApp
 from .helpers import add_input, result_block
 
-if TYPE_CHECKING:
-    from ..app import RefinanceCalculatorApp
 
-
-def build_main_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_main_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build the calculator tab inputs and result panels.
 
     Args:
         app: Application instance that owns the tab data.
         parent: Frame that hosts the calculator elements.
-
-    Returns:
-        None.
     """
     input_frame = ttk.Frame(parent)
     input_frame.pack(fill=tk.X, pady=(0, 10))
@@ -164,7 +161,9 @@ def build_main_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
     app.five_yr_npv_label.pack(pady=3)
 
 
-__all__ = ["build_main_tab"]
+__all__ = [
+    "build_main_tab",
+]
 
 __description__ = """
 Builder for the primary calculator tab.
