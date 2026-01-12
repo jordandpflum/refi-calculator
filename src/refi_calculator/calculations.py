@@ -265,7 +265,8 @@ def analyze_refinance(
         if acc_months:
             accelerated_months = acc_months
             accelerated_total_interest = acc_interest
-            accelerated_interest_savings = new_loan.total_interest - acc_interest
+            if acc_interest is not None:
+                accelerated_interest_savings = new_loan.total_interest - acc_interest
             accelerated_time_savings_months = new_loan.num_payments - acc_months
 
     # Total cost NPV calculations
