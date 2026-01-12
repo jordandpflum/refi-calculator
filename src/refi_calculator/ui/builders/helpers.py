@@ -8,7 +8,7 @@ from tkinter import ttk
 
 
 def add_input(
-    parent: ttk.Frame,
+    parent: tk.Misc,
     label: str,
     var: tk.StringVar,
     row: int,
@@ -34,7 +34,7 @@ def add_input(
 
 
 def add_option(
-    parent: ttk.Frame,
+    parent: tk.Misc,
     label: str,
     var: tk.StringVar,
     row: int,
