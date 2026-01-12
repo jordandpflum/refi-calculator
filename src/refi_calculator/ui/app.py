@@ -182,8 +182,8 @@ class RefinanceCalculatorApp:
 
         self.npv_window_years = tk.StringVar(value="5")
         self.chart_horizon_years = tk.StringVar(value="10")
-        self.sensitivity_max_reduction = tk.StringVar(value="2.0")
-        self.sensitivity_step = tk.StringVar(value="0.25")
+        self.sensitivity_max_reduction = tk.StringVar(value="2.5")
+        self.sensitivity_step = tk.StringVar(value="0.125")
         self.maintain_payment = tk.BooleanVar(value=False)
 
         self._build_ui()
@@ -329,7 +329,8 @@ class RefinanceCalculatorApp:
             current_rate_pct = float(self.current_rate.get())
             rate_steps = []
             r = sens_step
-            while r <= sens_max + 0.001:
+            max_scenarios = 20
+            while r <= sens_max + 0.001 and len(rate_steps) < max_scenarios:
                 new_rate = current_rate_pct - r
                 if new_rate > 0:
                     rate_steps.append(new_rate / 100)
