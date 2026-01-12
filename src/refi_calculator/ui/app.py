@@ -708,7 +708,7 @@ def main() -> None:
     root = tk.Tk()
     root.geometry("720x960")
     root.resizable(True, True)
-    root.minsize(640, 840)
+    root.minsize(600, 840)
     RefinanceCalculatorApp(root)
     root.mainloop()
 
