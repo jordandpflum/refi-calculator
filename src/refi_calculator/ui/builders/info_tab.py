@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
+from typing import TYPE_CHECKING
 
-from ..app import RefinanceCalculatorApp
+if TYPE_CHECKING:
+    from ..app import RefinanceCalculatorApp
 
 
 def build_background_tab(

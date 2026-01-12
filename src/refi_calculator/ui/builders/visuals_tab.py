@@ -4,10 +4,13 @@ from __future__ import annotations
 
 import tkinter as tk
 from tkinter import ttk
+from typing import TYPE_CHECKING
 
-from ..app import RefinanceCalculatorApp
 from ..chart import SavingsChart
 from .helpers import result_block
+
+if TYPE_CHECKING:
+    from ..app import RefinanceCalculatorApp
 
 
 def build_amortization_tab(
