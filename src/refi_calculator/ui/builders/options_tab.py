@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
-from ..helpers import add_option
+from .helpers import add_option
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp

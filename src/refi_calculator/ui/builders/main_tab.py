@@ -8,7 +8,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
-from ..helpers import add_input, result_block
+from .helpers import add_input, result_block
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp

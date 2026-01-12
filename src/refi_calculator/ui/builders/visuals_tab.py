@@ -7,7 +7,7 @@ from tkinter import ttk
 from typing import TYPE_CHECKING
 
 from ..chart import SavingsChart
-from ..helpers import result_block
+from .helpers import result_block
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp
