@@ -9,7 +9,9 @@ GUI.
 - Side-by-side analysis of current vs. proposed mortgage payments (nominal and after-tax)
 - Breakeven and holding-period tables with clear recommendations
 - Accelerated payoff planning for maintaining current payment levels
-- Visual amortization comparisons plus cumulative savings (nominal/NPV) chart
+- Loan Visualizations tab with the amortization comparison table (including cumulative interest Δ)
+  plus the refreshed cumulative savings chart (ticks, zero-line label) and a new balance comparison
+  chart for current vs. new loans
 - Exportable CSV data for every tab
 - Live market tab (when `FRED_API_KEY` is configured) surfaces historical 30-year fixed
   rates and pre-fills the refinance rate so you start with a realistic benchmark.

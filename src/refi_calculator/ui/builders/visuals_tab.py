@@ -6,7 +6,7 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
-from ..chart import SavingsChart
+from ..chart import AmortizationChart, SavingsChart
 from .helpers import result_block
 
 if TYPE_CHECKING:
@@ -41,6 +41,7 @@ def build_amortization_tab(
         "new_interest",
         "new_balance",
         "int_diff",
+        "cum_interest_diff",
     )
     app.amort_tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=15)
 
@@ -52,6 +53,7 @@ def build_amortization_tab(
     app.amort_tree.heading("new_interest", text="New Interest")
     app.amort_tree.heading("new_balance", text="New Balance")
     app.amort_tree.heading("int_diff", text="Interest Δ")
+    app.amort_tree.heading("cum_interest_diff", text="Cumulative Interest Δ")
 
     app.amort_tree.column("year", width=45, anchor=tk.CENTER)
     app.amort_tree.column("curr_principal", width=85, anchor=tk.E)
@@ -61,6 +63,7 @@ def build_amortization_tab(
     app.amort_tree.column("new_interest", width=80, anchor=tk.E)
     app.amort_tree.column("new_balance", width=85, anchor=tk.E)
     app.amort_tree.column("int_diff", width=70, anchor=tk.E)
+    app.amort_tree.column("cum_interest_diff", width=105, anchor=tk.E)
 
     y_scroll = ttk.Scrollbar(tree_frame, orient="vertical", command=app.amort_tree.yview)
     app.amort_tree.configure(yscrollcommand=y_scroll.set)
@@ -104,6 +107,15 @@ def build_chart_tab(
 
     app.chart = SavingsChart(parent, width=480, height=280)
     app.chart.pack(fill=tk.BOTH, expand=True)
+
+    ttk.Label(
+        parent,
+        text="Loan Balance Comparison",
+        font=("Segoe UI", 10, "bold"),
+    ).pack(anchor=tk.W, pady=(18, 6))
+
+    app.amortization_balance_chart = AmortizationChart(parent, width=480, height=240)
+    app.amortization_balance_chart.pack(fill=tk.BOTH, expand=True)
 
 
 __all__ = [

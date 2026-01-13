@@ -11,6 +11,7 @@ from tkinter import filedialog, messagebox, ttk
 
 from ..calculations import (
     analyze_refinance,
+    generate_amortization_schedule_pair,
     generate_comparison_schedule,
     run_holding_period_analysis,
     run_sensitivity,
@@ -23,7 +24,7 @@ from .builders.main_tab import build_main_tab
 from .builders.market_tab import build_market_tab
 from .builders.options_tab import build_options_tab
 from .builders.visuals_tab import build_amortization_tab, build_chart_tab
-from .chart import SavingsChart
+from .chart import AmortizationChart, SavingsChart
 from .market_chart import MarketChart
 from .market_constants import MARKET_DEFAULT_PERIOD, MARKET_SERIES
 
@@ -50,6 +51,9 @@ class RefinanceCalculatorApp:
         sensitivity_data: Sensitivity analysis data
         holding_period_data: Holding period analysis data
         amortization_data: Amortization comparison data
+        amortization_balance_chart: Amortization chart comparing loan balances
+        current_amortization_schedule: Monthly schedule for the current loan
+        new_amortization_schedule: Monthly schedule for the new loan
         current_balance: Current loan balance input
         current_rate: Current loan interest rate input
         current_remaining: Current loan remaining term input
@@ -119,6 +123,9 @@ class RefinanceCalculatorApp:
     sensitivity_data: list[dict]
     holding_period_data: list[dict]
     amortization_data: list[dict]
+    amortization_balance_chart: AmortizationChart | None
+    current_amortization_schedule: list[dict]
+    new_amortization_schedule: list[dict]
     current_balance: tk.StringVar
     current_rate: tk.StringVar
     current_remaining: tk.StringVar
@@ -199,6 +206,9 @@ class RefinanceCalculatorApp:
         self.sensitivity_data: list[dict] = []
         self.holding_period_data: list[dict] = []
         self.amortization_data: list[dict] = []
+        self.current_amortization_schedule: list[dict] = []
+        self.new_amortization_schedule: list[dict] = []
+        self.amortization_balance_chart: AmortizationChart | None = None
 
         self.current_balance = tk.StringVar(value="400000")
         self.current_rate = tk.StringVar(value="6.5")
@@ -285,7 +295,7 @@ class RefinanceCalculatorApp:
 
         # Visuals group: amortization + chart
         visuals_tab = ttk.Frame(self.notebook, padding=10)
-        self.notebook.add(visuals_tab, text="Visuals")
+        self.notebook.add(visuals_tab, text="Loan Visualizations")
         self.visuals_notebook = ttk.Notebook(visuals_tab)
         self.visuals_notebook.pack(fill=tk.BOTH, expand=True)
         amort_tab = ttk.Frame(self.visuals_notebook, padding=10)
@@ -606,6 +616,22 @@ class RefinanceCalculatorApp:
             )
             self._update_holding_period()
 
+            (
+                current_schedule,
+                new_schedule,
+            ) = generate_amortization_schedule_pair(
+                current_balance=params["current_balance"],
+                current_rate=params["current_rate"],
+                current_remaining_years=params["current_remaining_years"],
+                new_rate=params["new_rate"],
+                new_term_years=params["new_term_years"],
+                closing_costs=params["closing_costs"],
+                cash_out=params["cash_out"],
+                maintain_payment=params["maintain_payment"],
+            )
+            self.current_amortization_schedule = current_schedule
+            self.new_amortization_schedule = new_schedule
+
             self.amortization_data = generate_comparison_schedule(
                 current_balance=params["current_balance"],
                 current_rate=params["current_rate"],
@@ -617,6 +643,7 @@ class RefinanceCalculatorApp:
                 maintain_payment=params["maintain_payment"],
             )
             self._update_amortization()
+            self._update_amortization_balance_chart()
 
             self.chart.plot(
                 self.current_analysis.cumulative_savings,
@@ -802,12 +829,14 @@ class RefinanceCalculatorApp:
 
         cumulative_curr_interest = 0
         cumulative_new_interest = 0
+        cumulative_interest_diff = 0
 
         for row in self.amortization_data:
             cumulative_curr_interest += row["current_interest"]
             cumulative_new_interest += row["new_interest"]
 
             int_diff = row["interest_diff"]
+            cumulative_interest_diff += int_diff
             tag = "savings" if int_diff < 0 else "cost"
 
             self.amort_tree.insert(
@@ -822,6 +851,7 @@ class RefinanceCalculatorApp:
                     f"${row['new_interest']:,.0f}",
                     f"${row['new_balance']:,.0f}",
                     f"${int_diff:+,.0f}",
+                    f"${cumulative_interest_diff:+,.0f}",
                 ),
                 tags=(tag,),
             )
@@ -838,6 +868,15 @@ class RefinanceCalculatorApp:
             self.amort_int_savings.config(text=f"${total_savings:,.0f}", foreground="green")
         else:
             self.amort_int_savings.config(text=f"-${abs(total_savings):,.0f}", foreground="red")
+
+    def _update_amortization_balance_chart(self) -> None:
+        """Update loan balance comparison chart."""
+        if not self.amortization_balance_chart:
+            return
+        self.amortization_balance_chart.plot(
+            self.current_amortization_schedule,
+            self.new_amortization_schedule,
+        )
 
     def _export_csv(self) -> None:
         """Export main analysis data to CSV file."""
