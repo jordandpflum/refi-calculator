@@ -103,14 +103,14 @@ class MarketChart(tk.Canvas):
             rate_value = min_rate + (rate_range / tick_count_y) * idx
             y = y_coord(rate_value)
             self.create_line(
-                self.padding["left"] - 4,
+                self.padding["left"] - 6,
                 y,
                 self.padding["left"],
                 y,
                 fill="#333",
             )
             self.create_text(
-                self.padding["left"] - 6,
+                self.padding["left"] - 10,
                 y,
                 text=f"{rate_value:.2f}%",
                 anchor=tk.E,
@@ -154,7 +154,7 @@ class MarketChart(tk.Canvas):
             fill="#444",
         )
         self.create_text(
-            self.padding["left"] - 25,
+            self.padding["left"] - 35,
             (self.height + self.padding["top"] - self.padding["bottom"]) // 2,
             text="Rate (%)",
             angle=90,
