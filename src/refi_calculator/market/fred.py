@@ -23,7 +23,6 @@ def fetch_fred_series(
     Returns:
         Observations sorted newest-first, (date, float value).
     """
-
     params: dict[str, str] = {
         "series_id": series_id,
         "api_key": api_key,

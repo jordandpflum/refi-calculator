@@ -408,6 +408,72 @@ def generate_amortization_schedule(
     return schedule
 
 
+def generate_amortization_schedule_pair(
+    current_balance: float,
+    current_rate: float,
+    current_remaining_years: float,
+    new_rate: float,
+    new_term_years: float,
+    closing_costs: float,
+    cash_out: float = 0.0,
+    maintain_payment: bool = False,
+) -> tuple[list[dict], list[dict]]:
+    """Produce monthly amortization schedules for the current and new loans.
+
+    Args:
+        current_balance: Current loan balance.
+        current_rate: Current loan interest rate (as a decimal).
+        current_remaining_years: Remaining term of the current loan.
+        new_rate: Proposed refinance rate (as a decimal).
+        new_term_years: Term for the new loan.
+        closing_costs: Closing cost amount for the refinance.
+        cash_out: Cash out amount applied to the refinance.
+        maintain_payment: Whether the new loan should use the current payment.
+
+    Returns:
+        Tuple of (current_schedule, new_schedule), where each schedule is a list of
+        monthly dictionaries matching the structure produced by ``generate_amortization_schedule``.
+    """
+    current_loan = LoanParams(current_balance, current_rate, current_remaining_years)
+    new_balance = current_balance + closing_costs + cash_out
+    new_loan = LoanParams(new_balance, new_rate, new_term_years)
+
+    current_schedule = generate_amortization_schedule(current_loan, "Current")
+
+    if maintain_payment and current_loan.monthly_payment > new_loan.monthly_payment:
+        schedule: list[dict] = []
+        balance = new_balance
+        monthly_payment = current_loan.monthly_payment
+        monthly_rate = new_rate / 12
+
+        month = 0
+        max_months = 600
+        while balance > 0 and month < max_months:
+            month += 1
+            interest_payment = balance * monthly_rate
+            principal_payment = monthly_payment - interest_payment
+            balance -= principal_payment
+            if balance < 0:
+                principal_payment += balance
+                balance = 0
+            schedule.append(
+                {
+                    "loan": "New",
+                    "month": month,
+                    "year": (month - 1) // 12 + 1,
+                    "payment": monthly_payment,
+                    "principal": principal_payment,
+                    "interest": interest_payment,
+                    "balance": max(0, balance),
+                },
+            )
+        new_schedule = schedule
+    else:
+        new_schedule = generate_amortization_schedule(new_loan, "New")
+
+    return current_schedule, new_schedule
+
+
 def generate_comparison_schedule(
     current_balance: float,
     current_rate: float,
@@ -444,44 +510,16 @@ def generate_comparison_schedule(
             - interest_diff: Difference in interest paid (new - current)
             - balance_diff: Difference in balance (new - current)
     """
-    current_loan = LoanParams(current_balance, current_rate, current_remaining_years)
-    new_balance = current_balance + closing_costs + cash_out
-    new_loan = LoanParams(new_balance, new_rate, new_term_years)
-
-    current_schedule = generate_amortization_schedule(current_loan, "Current")
-
-    # If maintaining payment and the current payment is higher, build an
-    # accelerated payoff schedule for the new loan using the higher payment.
-    if maintain_payment and current_loan.monthly_payment > new_loan.monthly_payment:
-        schedule = []
-        balance = new_balance
-        monthly_payment = current_loan.monthly_payment
-        monthly_rate = new_rate / 12
-
-        month = 0
-        max_months = 600  # Cap at 50 years for safety, though payoff should be sooner
-        while balance > 0 and month < max_months:
-            month += 1
-            interest_payment = balance * monthly_rate
-            principal_payment = monthly_payment - interest_payment
-            balance -= principal_payment
-            if balance < 0:
-                principal_payment += balance
-                balance = 0
-            schedule.append(
-                {
-                    "loan": "New",
-                    "month": month,
-                    "year": (month - 1) // 12 + 1,
-                    "payment": monthly_payment,
-                    "principal": principal_payment,
-                    "interest": interest_payment,
-                    "balance": max(0, balance),
-                },
-            )
-        new_schedule = schedule
-    else:
-        new_schedule = generate_amortization_schedule(new_loan, "New")
+    current_schedule, new_schedule = generate_amortization_schedule_pair(
+        current_balance=current_balance,
+        current_rate=current_rate,
+        current_remaining_years=current_remaining_years,
+        new_rate=new_rate,
+        new_term_years=new_term_years,
+        closing_costs=closing_costs,
+        cash_out=cash_out,
+        maintain_payment=maintain_payment,
+    )
 
     # Determine the number of years to show based on the actual schedules
     max_years = max(
@@ -664,6 +702,7 @@ __all__ = [
     "calculate_total_cost_npv",
     "analyze_refinance",
     "generate_amortization_schedule",
+    "generate_amortization_schedule_pair",
     "generate_comparison_schedule",
     "run_holding_period_analysis",
     "run_sensitivity",
