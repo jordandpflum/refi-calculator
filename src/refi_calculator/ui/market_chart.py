@@ -97,6 +97,71 @@ class MarketChart(tk.Canvas):
             fill="#333",
         )
 
+        # Y-axis ticks
+        tick_count_y = 4
+        for idx in range(tick_count_y + 1):
+            rate_value = min_rate + (rate_range / tick_count_y) * idx
+            y = y_coord(rate_value)
+            self.create_line(
+                self.padding["left"] - 4,
+                y,
+                self.padding["left"],
+                y,
+                fill="#333",
+            )
+            self.create_text(
+                self.padding["left"] - 6,
+                y,
+                text=f"{rate_value:.2f}%",
+                anchor=tk.E,
+                font=("Segoe UI", 7),
+                fill="#666",
+            )
+
+        # X-axis ticks
+        sample_points = next(iter(filtered.values()))
+        total_points = len(sample_points)
+        tick_step = max(1, total_points // 5)
+        tick_indices = list(range(0, total_points, tick_step))
+        if total_points - 1 not in tick_indices:
+            tick_indices.append(total_points - 1)
+
+        for idx in tick_indices:
+            x = x_coord(idx, total_points)
+            self.create_line(
+                x,
+                self.height - self.padding["bottom"],
+                x,
+                self.height - self.padding["bottom"] + 4,
+                fill="#333",
+            )
+            date_label = sample_points[idx][0]
+            self.create_text(
+                x,
+                self.height - self.padding["bottom"] + 14,
+                text=date_label,
+                anchor=tk.N,
+                font=("Segoe UI", 7),
+                fill="#666",
+            )
+
+        # Axis labels
+        self.create_text(
+            self.width // 2,
+            self.height - 10,
+            text="Date (oldest → newest)",
+            font=("Segoe UI", 8, "bold"),
+            fill="#444",
+        )
+        self.create_text(
+            self.padding["left"] - 25,
+            (self.height + self.padding["top"] - self.padding["bottom"]) // 2,
+            text="Rate (%)",
+            angle=90,
+            font=("Segoe UI", 8, "bold"),
+            fill="#444",
+        )
+
         legend_x = self.width - self.padding["right"] - 110
         legend_y = self.padding["top"] + 10
         for idx, label in enumerate(filtered.keys()):
