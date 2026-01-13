@@ -1,5 +1,10 @@
 # Changelog
 
+## [Unreleased]
+
+- Load configuration early by reading any `.env` file before spawning the UI so CLI scripts can
+  inject runtime variables without touching the host environment.
+
 ## [0.3.0]
 
 - Added a standard-library CLI launcher (`refi_calculator.cli`) that exposes `refi-calculator` with
