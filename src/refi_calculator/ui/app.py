@@ -133,6 +133,7 @@ class RefinanceCalculatorApp:
     market_error: str | None
     market_tree: ttk.Treeview | None
     _market_status_label: ttk.Label | None
+    _market_cache_indicator: ttk.Label | None
     _market_last_refresh: datetime | None
     _market_cache_timestamp: datetime | None
     _calc_canvas: tk.Canvas
@@ -214,6 +215,7 @@ class RefinanceCalculatorApp:
         self.market_error: str | None = None
         self.market_tree: ttk.Treeview | None = None
         self._market_status_label: ttk.Label | None = None
+        self._market_cache_indicator: ttk.Label | None = None
         self._market_last_refresh: datetime | None = None
         self._market_cache_timestamp: datetime | None = None
 
@@ -398,6 +400,7 @@ class RefinanceCalculatorApp:
         if not self.market_rates:
             status_text = self.market_error or "Market data is not available at the moment."
             self._market_status_label.config(text=status_text, foreground="red")
+            self._update_market_cache_indicator()
             return
 
         for observation in self.market_rates:
@@ -410,6 +413,29 @@ class RefinanceCalculatorApp:
         if self._market_last_refresh:
             status_text += f" - refreshed {self._market_last_refresh:%Y-%m-%d %H:%M}"
         self._market_status_label.config(text=status_text, foreground="black")
+        self._update_market_cache_indicator()
+
+    def _update_market_cache_indicator(self) -> None:
+        """Update the cache status indicator label below the Market tab header."""
+        if not self._market_cache_indicator:
+            return
+
+        if not self._market_cache_timestamp:
+            self._market_cache_indicator.config(
+                text="Cache: not populated",
+                foreground="#666",
+            )
+            return
+
+        age = datetime.now() - self._market_cache_timestamp
+        status = "fresh" if age < MARKET_CACHE_TTL else "stale"
+        minutes = int(age.total_seconds() / 60)
+        suffix = "just now" if minutes == 0 else f"{minutes} min ago"
+        color = "green" if status == "fresh" else "orange"
+        self._market_cache_indicator.config(
+            text=f"Cache ({status}): {suffix}",
+            foreground=color,
+        )
 
     def _calculate(self) -> None:
         """Perform refinance analysis and update all results and charts."""

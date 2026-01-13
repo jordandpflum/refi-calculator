@@ -33,6 +33,14 @@ def build_market_tab(
     )
     status_label.pack(anchor=tk.W, pady=(0, 6))
 
+    cache_indicator = ttk.Label(
+        parent,
+        text="Cache: initializing...",
+        font=("Segoe UI", 8),
+        foreground="#666",
+    )
+    cache_indicator.pack(anchor=tk.W, pady=(0, 6))
+
     tree_frame = ttk.Frame(parent)
     tree_frame.pack(fill=tk.BOTH, expand=True)
 
@@ -59,6 +67,7 @@ def build_market_tab(
 
     app.market_tree = tree
     app._market_status_label = status_label
+    app._market_cache_indicator = cache_indicator
 
 
 __all__ = ["build_market_tab"]
