@@ -152,12 +152,14 @@ def build_help_tab(
             "Shows NPV at various holding periods (1-20 years).\n\nThis helps when you're uncertain how long you'll stay in the home. The recommendation column provides guidance:\n• Strong Yes (green): NPV > $5,000\n• Yes (dark green): NPV > $0\n• Marginal (orange): NPV between -$2,000 and $0\n• No (red): NPV < -$2,000",
         ),
         (
-            "Amortization Tab",
-            "Year-by-year comparison of both loans showing principal paid, interest paid, and ending balance. The Interest Δ column shows annual difference (green = savings, red = extra cost).\n\nThis makes the term reset problem visible — you can see exactly when and how much extra interest accumulates.",
+            "Loan Visualizations Tab",
+            "The Loan Visualizations tab contains the annual amortization comparison table, which now includes a cumulative interest Δ column alongside colored savings/cost indicators so you can track how the refinance affects total interest year over year.",
         ),
         (
-            "Chart Tab",
-            "Visualizes cumulative savings over time.\n\nBlue line: Nominal cumulative savings\nGreen line: NPV-adjusted cumulative savings\nVertical dashed line: NPV breakeven point",
+            "Charts within Loan Visualizations",
+            "Two charts live on the Loan Visualizations tab:\n\n"
+            "1. Cumulative Savings Chart — shows nominal (blue) and NPV-adjusted (green) savings with monthly ticks, a labeled zero line, and a dashed vertical line marking the NPV breakeven point.\n"
+            "2. Loan Balance Comparison Chart — plots the remaining balances for the current (red) and new (blue) loans so you can see how the term reset or accelerated payoff affects your timeline.",
         ),
         (
             "Options Tab",
