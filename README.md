@@ -13,6 +13,8 @@ GUI.
 - Exportable CSV data for every tab
 - Live market tab (when `FRED_API_KEY` is configured) surfaces historical 30-year fixed
   rates and pre-fills the refinance rate so you start with a realistic benchmark.
+- Interactive history chart in the Market tab plus the value table below it with 30Y/15Y
+  toggles for quick comparisons.
 
 ## Getting Started
 
@@ -50,6 +52,8 @@ the analysis helpers.
   you launch the app. The Market tab will populate a refreshable table and update the default
   refinance rate using the latest observation. If the key is missing or the FRED request fails,
   the tab keeps working but reports the reason for the skip.
+- Use the tabs inside the Market section to switch between 30-year and 15-year series; each tab
+  redraws the history chart and table below it so you can visually compare recent moves.
 
 Add new tests under `tests/` following the `test_*.py` pattern whenever you enhance functionality.
 

@@ -24,6 +24,8 @@ from .builders.market_tab import build_market_tab
 from .builders.options_tab import build_options_tab
 from .builders.visuals_tab import build_amortization_tab, build_chart_tab
 from .chart import SavingsChart
+from .market_chart import MarketChart
+from .market_constants import MARKET_SERIES
 
 logger = getLogger(__name__)
 
@@ -63,11 +65,15 @@ class RefinanceCalculatorApp:
         sensitivity_step: Sensitivity rate step input
         maintain_payment: Maintain current payment option
         fred_api_key: FRED API key for market data (if available)
-        market_rates: Historical rate observations loaded from FRED
-        market_tree: Treeview for displaying rate history
+        market_series_data: Historical rate observations keyed by series id
+        market_series_errors: Load errors keyed by series id
+        market_cache_timestamps: Cache timestamps keyed by series id
+        market_table_widgets: Table widgets keyed by series id
+        market_chart_widgets: Chart widgets keyed by series id
+        market_notebook: Notebook containing the series tabs
+        market_series_display_names: Display labels keyed by series id
         _market_status_label: Label describing market data status
-        _market_last_refresh: Timestamp of most recent market fetch
-        _market_cache_timestamp: When cached market data was retrieved
+        _market_cache_indicator: Cache freshness badge
         _calc_canvas: Canvas for the calculator tab
         sens_tree: Treeview for sensitivity analysis
         holding_tree: Treeview for holding period analysis
@@ -129,13 +135,15 @@ class RefinanceCalculatorApp:
     sensitivity_step: tk.StringVar
     maintain_payment: tk.BooleanVar
     fred_api_key: str | None
-    market_rates: list[tuple[str, float]]
-    market_error: str | None
-    market_tree: ttk.Treeview | None
+    market_series_data: dict[str, list[tuple[str, float]]]
+    market_series_errors: dict[str, str | None]
+    market_cache_timestamps: dict[str, datetime | None]
+    market_table_widgets: dict[str, ttk.Treeview]
+    market_chart_widgets: dict[str, MarketChart]
+    market_notebook: ttk.Notebook | None
+    market_series_display_names: dict[str, str]
     _market_status_label: ttk.Label | None
     _market_cache_indicator: ttk.Label | None
-    _market_last_refresh: datetime | None
-    _market_cache_timestamp: datetime | None
     _calc_canvas: tk.Canvas
     sens_tree: ttk.Treeview
     holding_tree: ttk.Treeview
@@ -211,15 +219,23 @@ class RefinanceCalculatorApp:
         self.maintain_payment = tk.BooleanVar(value=False)
 
         self.fred_api_key = os.getenv("FRED_API_KEY")
-        self.market_rates: list[tuple[str, float]] = []
-        self.market_error: str | None = None
-        self.market_tree: ttk.Treeview | None = None
+        self.market_series_data: dict[str, list[tuple[str, float]]] = {
+            series_id: [] for _, series_id in MARKET_SERIES
+        }
+        self.market_series_errors: dict[str, str | None] = {
+            series_id: None for _, series_id in MARKET_SERIES
+        }
+        self.market_cache_timestamps: dict[str, datetime | None] = {
+            series_id: None for _, series_id in MARKET_SERIES
+        }
+        self.market_table_widgets: dict[str, ttk.Treeview] = {}
+        self.market_chart_widgets: dict[str, MarketChart] = {}
+        self.market_notebook: ttk.Notebook | None = None
+        self.market_series_display_names = {series_id: label for label, series_id in MARKET_SERIES}
         self._market_status_label: ttk.Label | None = None
         self._market_cache_indicator: ttk.Label | None = None
-        self._market_last_refresh: datetime | None = None
-        self._market_cache_timestamp: datetime | None = None
 
-        self._load_market_rates(force=True)
+        self._load_all_market_data(force=True)
         self._build_ui()
         self._calculate()
 
@@ -330,10 +346,11 @@ class RefinanceCalculatorApp:
                 if sub_index == 0 and hasattr(self, "amort_tree"):
                     self.amort_tree.yview_scroll(delta, "units")
                 # Chart tab has no vertical scroll
-            elif (
-                top_index == MARKET_TAB_INDEX and hasattr(self, "market_tree") and self.market_tree
-            ):
-                self.market_tree.yview_scroll(delta, "units")
+            elif top_index == MARKET_TAB_INDEX and self.market_notebook:
+                series_id = self._selected_market_series_id()
+                tree = self.market_table_widgets.get(series_id) if series_id else None
+                if tree:
+                    tree.yview_scroll(delta, "units")
             elif top_index == INFO_TAB_INDEX and hasattr(self, "info_notebook"):
                 # Info tab
                 sub_index = self.info_notebook.index(self.info_notebook.select())
@@ -344,90 +361,148 @@ class RefinanceCalculatorApp:
 
         self.root.bind_all("<MouseWheel>", on_mousewheel)
 
-    def _load_market_rates(self, *, force: bool = False) -> None:
-        """Load historical market rates from the FRED API when a key is configured."""
+    def _load_market_series(self, series_id: str, *, force: bool = False) -> None:
+        """Fetch a named FRED series, reusing cache if it is still fresh."""
         now = datetime.now()
+        cache_timestamp = self.market_cache_timestamps.get(series_id)
+        cached_values = self.market_series_data.get(series_id)
         if (
             not force
-            and self.market_rates
-            and self._market_cache_timestamp
-            and now - self._market_cache_timestamp < MARKET_CACHE_TTL
+            and cached_values
+            and cache_timestamp
+            and now - cache_timestamp < MARKET_CACHE_TTL
         ):
-            logger.debug("Using cached market observation data")
-            self._market_last_refresh = self._market_cache_timestamp
-            self.market_error = None
+            logger.debug("Using cached market observation data for %s", series_id)
+            self.market_series_errors[series_id] = None
             return
 
         if not self.fred_api_key:
-            self.market_error = "FRED_API_KEY is not configured; market history is disabled."
-            logger.info(self.market_error)
+            self.market_series_errors[series_id] = (
+                "FRED_API_KEY is not configured; market history is disabled."
+            )
+            logger.info(
+                "Skipping market fetch for %s: %s",
+                series_id,
+                self.market_series_errors[series_id],
+            )
             return
 
         try:
-            observations = fetch_fred_series("MORTGAGE30US", self.fred_api_key, limit=90)
+            observations = fetch_fred_series(series_id, self.fred_api_key, limit=90)
         except RuntimeError as exc:
-            logger.exception("Failed to fetch market rates from FRED")
-            self.market_error = f"Unable to load mortgage rate data: {exc}"
+            logger.exception("Failed to fetch market rates from FRED for %s", series_id)
+            self.market_series_errors[series_id] = f"Unable to load mortgage rate data: {exc}"
             return
 
         if not observations:
-            self.market_error = "FRED returned no observations for the selected series."
-            logger.warning(self.market_error)
+            self.market_series_errors[series_id] = (
+                "FRED returned no observations for the selected series."
+            )
+            logger.warning(self.market_series_errors[series_id])
             return
 
-        self.market_rates = observations
-        self._market_cache_timestamp = now
-        self._market_last_refresh = now
-        self.market_error = None
-        latest_rate = self.market_rates[0][1]
-        self.new_rate.set(f"{latest_rate:.3f}")
+        self.market_series_data[series_id] = observations
+        self.market_cache_timestamps[series_id] = now
+        self.market_series_errors[series_id] = None
+
+        if series_id == "MORTGAGE30US" and observations:
+            latest_rate = observations[0][1]
+            self.new_rate.set(f"{latest_rate:.3f}")
+
+    def _load_all_market_data(self, *, force: bool = False) -> None:
+        """Ensure every configured series has fresh data."""
+        for _, series_id in MARKET_SERIES:
+            self._load_market_series(series_id, force=force)
 
     def _refresh_market_data(self) -> None:
         """Refresh market rates and update the corresponding tab."""
-        self._load_market_rates()
+        self._load_all_market_data(force=True)
         self._populate_market_tab()
-        if self.market_rates:
+        if self.market_series_data.get("MORTGAGE30US"):
             self._calculate()
 
     def _populate_market_tab(self) -> None:
         """Update the market tab tree with the latest observations."""
-        if not self.market_tree or not self._market_status_label:
+        if not self._market_status_label:
             return
 
-        for row in self.market_tree.get_children():
-            self.market_tree.delete(row)
+        for _, series_id in MARKET_SERIES:
+            tree = self.market_table_widgets.get(series_id)
+            if not tree:
+                continue
 
-        if not self.market_rates:
-            status_text = self.market_error or "Market data is not available at the moment."
+            for row in tree.get_children():
+                tree.delete(row)
+
+            rows = self.market_series_data.get(series_id) or []
+            for date_text, rate in rows:
+                tree.insert("", tk.END, values=(date_text, f"{rate:.3f}%"))
+
+            chart = self.market_chart_widgets.get(series_id)
+            if chart:
+                chart.plot(rows)
+
+        self._update_market_status_display()
+
+    def _selected_market_series_id(self) -> str | None:
+        """Return the currently active market series id from the notebook."""
+        if not self.market_notebook:
+            return None
+
+        current_tab = self.market_notebook.select()
+        if not current_tab:
+            return None
+
+        widget = self.root.nametowidget(current_tab)
+        return getattr(widget, "series_id", None)
+
+    def _update_market_status_display(self) -> None:
+        """Refresh the market status text and cache indicator for the selected series."""
+        if not self._market_status_label:
+            return
+
+        series_id = self._selected_market_series_id()
+        if not series_id:
+            return
+
+        display_name = self.market_series_display_names.get(series_id, series_id)
+        rows = self.market_series_data.get(series_id)
+        error = self.market_series_errors.get(series_id)
+
+        if not rows:
+            status_text = error or f"{display_name} data is not available at the moment."
             self._market_status_label.config(text=status_text, foreground="red")
-            self._update_market_cache_indicator()
+            self._update_market_cache_indicator(series_id)
             return
 
-        for observation in self.market_rates:
-            date_text = observation[0]
-            rate_text = f"{observation[1]:.3f}%"
-            self.market_tree.insert("", tk.END, values=(date_text, rate_text))
+        latest_date, latest_rate = rows[0]
+        status_text = f"{display_name} rate: {latest_rate:.3f}% ({latest_date})"
+        timestamp = self.market_cache_timestamps.get(series_id)
+        if timestamp:
+            status_text += f" - refreshed {timestamp:%Y-%m-%d %H:%M}"
 
-        latest_date, latest_rate = self.market_rates[0]
-        status_text = f"Latest 30-year fixed rate: {latest_rate:.3f}% ({latest_date})"
-        if self._market_last_refresh:
-            status_text += f" - refreshed {self._market_last_refresh:%Y-%m-%d %H:%M}"
         self._market_status_label.config(text=status_text, foreground="black")
-        self._update_market_cache_indicator()
+        self._update_market_cache_indicator(series_id)
 
-    def _update_market_cache_indicator(self) -> None:
+    def _update_market_cache_indicator(self, series_id: str | None = None) -> None:
         """Update the cache status indicator label below the Market tab header."""
         if not self._market_cache_indicator:
             return
 
-        if not self._market_cache_timestamp:
+        if not series_id:
+            series_id = self._selected_market_series_id()
+        if not series_id:
+            return
+
+        timestamp = self.market_cache_timestamps.get(series_id)
+        if not timestamp:
             self._market_cache_indicator.config(
                 text="Cache: not populated",
                 foreground="#666",
             )
             return
 
-        age = datetime.now() - self._market_cache_timestamp
+        age = datetime.now() - timestamp
         status = "fresh" if age < MARKET_CACHE_TTL else "stale"
         minutes = int(age.total_seconds() / 60)
         suffix = "just now" if minutes == 0 else f"{minutes} min ago"
