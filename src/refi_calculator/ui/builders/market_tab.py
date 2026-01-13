@@ -7,7 +7,7 @@ from tkinter import ttk
 from typing import TYPE_CHECKING
 
 from ..market_chart import MarketChart
-from ..market_constants import MARKET_SERIES
+from ..market_constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp
@@ -43,6 +43,18 @@ def build_market_tab(
         foreground="#666",
     )
     cache_indicator.pack(anchor=tk.W, pady=(0, 6))
+
+    period_frame = ttk.Frame(parent)
+    period_frame.pack(fill=tk.X, pady=(0, 6))
+    ttk.Label(period_frame, text="Range:").pack(side=tk.LEFT)
+    for label, value in MARKET_PERIOD_OPTIONS:
+        ttk.Radiobutton(
+            period_frame,
+            text=label,
+            variable=app.market_period_var,
+            value=value,
+            command=app._populate_market_tab,
+        ).pack(side=tk.LEFT, padx=(6, 0))
 
     action_frame = ttk.Frame(parent)
     action_frame.pack(fill=tk.X, pady=(0, 6))

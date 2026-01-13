@@ -52,8 +52,9 @@ the analysis helpers.
   you launch the app. The Market tab will populate a refreshable table and update the default
   refinance rate using the latest observation. If the key is missing or the FRED request fails,
   the tab keeps working but reports the reason for the skip.
-- Use the tabs inside the Market section to switch between 30-year and 15-year series; each tab
-  redraws the history chart and table below it so you can visually compare recent moves.
+- Use the selectors inside the Market section to start with one year of history or extend the view
+  to two years, five years, or all available data. The chart overlays both tenors with a legend,
+  and the table below shows one column per tenor for the selected time window.
 
 Add new tests under `tests/` following the `test_*.py` pattern whenever you enhance functionality.
 

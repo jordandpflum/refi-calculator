@@ -7,8 +7,17 @@ MARKET_SERIES: list[tuple[str, str]] = [
     ("15-Year", "MORTGAGE15US"),
 ]
 
+MARKET_PERIOD_OPTIONS: list[tuple[str, str]] = [
+    ("1 Year", "12"),
+    ("2 Years", "24"),
+    ("5 Years", "60"),
+    ("All", "0"),
+]
 
-__all__ = ["MARKET_SERIES"]
+MARKET_DEFAULT_PERIOD = "12"
+
+
+__all__ = ["MARKET_SERIES", "MARKET_PERIOD_OPTIONS", "MARKET_DEFAULT_PERIOD"]
 
 __description__ = """
 Constants used by the market data tab.

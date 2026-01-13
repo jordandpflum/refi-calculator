@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import tkinter as tk
+from datetime import datetime
 
 
 class MarketChart(tk.Canvas):
@@ -38,7 +39,7 @@ class MarketChart(tk.Canvas):
         self.height = height
         self.padding = {"left": 70, "right": 20, "top": 20, "bottom": 40}
 
-    def plot(self, series_data: dict[str, list[tuple[str, float]]]) -> None:
+    def plot(self, series_data: dict[str, list[tuple[datetime, float]]]) -> None:
         """Draw a multi-line chart for the supplied rate series.
 
         Args:
@@ -135,7 +136,7 @@ class MarketChart(tk.Canvas):
                 self.height - self.padding["bottom"] + 4,
                 fill="#333",
             )
-            date_label = sample_points[idx][0]
+            date_label = sample_points[idx][0].strftime("%Y-%m-%d")
             self.create_text(
                 x,
                 self.height - self.padding["bottom"] + 14,
