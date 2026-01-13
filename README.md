@@ -11,6 +11,8 @@ GUI.
 - Accelerated payoff planning for maintaining current payment levels
 - Visual amortization comparisons plus cumulative savings (nominal/NPV) chart
 - Exportable CSV data for every tab
+- Live market tab (when `FRED_API_KEY` is configured) surfaces historical 30-year fixed
+  rates and pre-fills the refinance rate so you start with a realistic benchmark.
 
 ## Getting Started
 
@@ -34,13 +36,20 @@ in `.pre-commit-config.yaml`.
 poetry run python bin/refi-calculator.py
 ```
 
-The script boots the Tkinter application (`src/refi_calculator/ui/app.py`) that ties together all the
-analysis helpers.
+The script boots the Tkinter application (`src/refi_calculator/ui/app.py`) that ties together all
+the analysis helpers.
 
 ## Testing & Quality
 
 - `poetry run pre-commit run --all-files` (runs formatting, linting, safety hooks, etc.)
 - `poetry run pytest` (not yet populated, but ready for future tests)
+
+### Market Data Tab
+
+- Set the `FRED_API_KEY` environment variable to pull historical 30-year fixed-rate data when
+  you launch the app. The Market tab will populate a refreshable table and update the default
+  refinance rate using the latest observation. If the key is missing or the FRED request fails,
+  the tab keeps working but reports the reason for the skip.
 
 Add new tests under `tests/` following the `test_*.py` pattern whenever you enhance functionality.
 

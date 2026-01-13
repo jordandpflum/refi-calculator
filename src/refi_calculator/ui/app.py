@@ -3,8 +3,10 @@
 from __future__ import annotations
 
 import csv
+import os
 import tkinter as tk
 from datetime import datetime
+from logging import getLogger
 from tkinter import filedialog, messagebox, ttk
 
 from ..calculations import (
@@ -13,20 +15,26 @@ from ..calculations import (
     run_holding_period_analysis,
     run_sensitivity,
 )
+from ..market.fred import fetch_fred_series
 from ..models import RefinanceAnalysis
 from .builders.analysis_tab import build_holding_period_tab, build_sensitivity_tab
 from .builders.info_tab import build_background_tab, build_help_tab
 from .builders.main_tab import build_main_tab
+from .builders.market_tab import build_market_tab
 from .builders.options_tab import build_options_tab
 from .builders.visuals_tab import build_amortization_tab, build_chart_tab
 from .chart import SavingsChart
+
+logger = getLogger(__name__)
 
 # ruff: noqa: PLR0915, PLR0912
 
 CALCULATOR_TAB_INDEX = 0
 ANALYSIS_TAB_INDEX = 1
 VISUALS_TAB_INDEX = 2
-INFO_TAB_INDEX = 4
+MARKET_TAB_INDEX = 3
+OPTIONS_TAB_INDEX = 4
+INFO_TAB_INDEX = 5
 
 
 class RefinanceCalculatorApp:
@@ -52,6 +60,11 @@ class RefinanceCalculatorApp:
         sensitivity_max_reduction: Sensitivity max rate reduction input
         sensitivity_step: Sensitivity rate step input
         maintain_payment: Maintain current payment option
+        fred_api_key: FRED API key for market data (if available)
+        market_rates: Historical rate observations loaded from FRED
+        market_tree: Treeview for displaying rate history
+        _market_status_label: Label describing market data status
+        _market_last_refresh: Timestamp of most recent market fetch
         _calc_canvas: Canvas for the calculator tab
         sens_tree: Treeview for sensitivity analysis
         holding_tree: Treeview for holding period analysis
@@ -112,6 +125,12 @@ class RefinanceCalculatorApp:
     sensitivity_max_reduction: tk.StringVar
     sensitivity_step: tk.StringVar
     maintain_payment: tk.BooleanVar
+    fred_api_key: str | None
+    market_rates: list[tuple[str, float]]
+    market_error: str | None
+    market_tree: ttk.Treeview | None
+    _market_status_label: ttk.Label | None
+    _market_last_refresh: datetime | None
     _calc_canvas: tk.Canvas
     sens_tree: ttk.Treeview
     holding_tree: ttk.Treeview
@@ -186,6 +205,14 @@ class RefinanceCalculatorApp:
         self.sensitivity_step = tk.StringVar(value="0.125")
         self.maintain_payment = tk.BooleanVar(value=False)
 
+        self.fred_api_key = os.getenv("FRED_API_KEY")
+        self.market_rates: list[tuple[str, float]] = []
+        self.market_error: str | None = None
+        self.market_tree: ttk.Treeview | None = None
+        self._market_status_label: ttk.Label | None = None
+        self._market_last_refresh: datetime | None = None
+
+        self._load_market_rates()
         self._build_ui()
         self._calculate()
 
@@ -246,6 +273,12 @@ class RefinanceCalculatorApp:
         self.visuals_notebook.add(amort_tab, text="Amortization")
         self.visuals_notebook.add(chart_tab, text="Chart")
 
+        # Market data tab
+        market_tab = ttk.Frame(self.notebook, padding=10)
+        self.notebook.add(market_tab, text="Market")
+        build_market_tab(self, market_tab)
+        self._populate_market_tab()
+
         # Options remain a top-level tab
         options_tab = ttk.Frame(self.notebook, padding=10)
         self.notebook.add(options_tab, text="Options")
@@ -290,6 +323,10 @@ class RefinanceCalculatorApp:
                 if sub_index == 0 and hasattr(self, "amort_tree"):
                     self.amort_tree.yview_scroll(delta, "units")
                 # Chart tab has no vertical scroll
+            elif (
+                top_index == MARKET_TAB_INDEX and hasattr(self, "market_tree") and self.market_tree
+            ):
+                self.market_tree.yview_scroll(delta, "units")
             elif top_index == INFO_TAB_INDEX and hasattr(self, "info_notebook"):
                 # Info tab
                 sub_index = self.info_notebook.index(self.info_notebook.select())
@@ -299,6 +336,65 @@ class RefinanceCalculatorApp:
                     self._help_canvas.yview_scroll(delta, "units")
 
         self.root.bind_all("<MouseWheel>", on_mousewheel)
+
+    def _load_market_rates(self) -> None:
+        """Load historical market rates from the FRED API when a key is configured."""
+        self.market_rates = []
+        self.market_error = None
+        self._market_last_refresh = None
+
+        if not self.fred_api_key:
+            self.market_error = "FRED_API_KEY is not configured; market history is disabled."
+            logger.info(self.market_error)
+            return
+
+        try:
+            observations = fetch_fred_series("MORTGAGE30US", self.fred_api_key, limit=90)
+        except RuntimeError as exc:
+            logger.exception("Failed to fetch market rates from FRED")
+            self.market_error = f"Unable to load mortgage rate data: {exc}"
+            return
+
+        if not observations:
+            self.market_error = "FRED returned no observations for the selected series."
+            logger.warning(self.market_error)
+            return
+
+        self.market_rates = observations
+        self._market_last_refresh = datetime.now()
+        latest_rate = self.market_rates[0][1]
+        self.new_rate.set(f"{latest_rate:.3f}")
+
+    def _refresh_market_data(self) -> None:
+        """Refresh market rates and update the corresponding tab."""
+        self._load_market_rates()
+        self._populate_market_tab()
+        if self.market_rates:
+            self._calculate()
+
+    def _populate_market_tab(self) -> None:
+        """Update the market tab tree with the latest observations."""
+        if not self.market_tree or not self._market_status_label:
+            return
+
+        for row in self.market_tree.get_children():
+            self.market_tree.delete(row)
+
+        if not self.market_rates:
+            status_text = self.market_error or "Market data is not available at the moment."
+            self._market_status_label.config(text=status_text, foreground="red")
+            return
+
+        for observation in self.market_rates:
+            date_text = observation[0]
+            rate_text = f"{observation[1]:.3f}%"
+            self.market_tree.insert("", tk.END, values=(date_text, rate_text))
+
+        latest_date, latest_rate = self.market_rates[0]
+        status_text = f"Latest 30-year fixed rate: {latest_rate:.3f}% ({latest_date})"
+        if self._market_last_refresh:
+            status_text += f" - refreshed {self._market_last_refresh:%Y-%m-%d %H:%M}"
+        self._market_status_label.config(text=status_text, foreground="black")
 
     def _calculate(self) -> None:
         """Perform refinance analysis and update all results and charts."""
@@ -707,9 +803,9 @@ class RefinanceCalculatorApp:
 def main() -> None:
     """Main driver function to run the refinance calculator app."""
     root = tk.Tk()
-    root.geometry("840x960")
+    root.geometry("1100x1040")
     root.resizable(True, True)
-    root.minsize(760, 860)
+    root.minsize(940, 900)
     RefinanceCalculatorApp(root)
     root.mainloop()
 
