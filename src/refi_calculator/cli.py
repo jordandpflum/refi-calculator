@@ -6,6 +6,7 @@ import argparse
 from importlib.metadata import PackageNotFoundError, version
 from logging import basicConfig, getLogger
 
+from refi_calculator.environment import load_dotenv
 from refi_calculator.ui.app import main as launch_gui
 
 logger = getLogger(__name__)
@@ -52,6 +53,7 @@ def main(argv: list[str] | None = None) -> None:
     """
     parser = _create_parser()
     parser.parse_args(argv)
+    load_dotenv()
     basicConfig(level="INFO")
     logger.info("Launching Refi-Calculator UI")
     launch_gui()
