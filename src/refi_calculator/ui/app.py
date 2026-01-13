@@ -5,7 +5,7 @@ from __future__ import annotations
 import csv
 import os
 import tkinter as tk
-from datetime import datetime
+from datetime import datetime, timedelta
 from logging import getLogger
 from tkinter import filedialog, messagebox, ttk
 
@@ -36,6 +36,8 @@ MARKET_TAB_INDEX = 3
 OPTIONS_TAB_INDEX = 4
 INFO_TAB_INDEX = 5
 
+MARKET_CACHE_TTL = timedelta(minutes=15)
+
 
 class RefinanceCalculatorApp:
     """Refinance Calculator Application.
@@ -65,6 +67,7 @@ class RefinanceCalculatorApp:
         market_tree: Treeview for displaying rate history
         _market_status_label: Label describing market data status
         _market_last_refresh: Timestamp of most recent market fetch
+        _market_cache_timestamp: When cached market data was retrieved
         _calc_canvas: Canvas for the calculator tab
         sens_tree: Treeview for sensitivity analysis
         holding_tree: Treeview for holding period analysis
@@ -131,6 +134,7 @@ class RefinanceCalculatorApp:
     market_tree: ttk.Treeview | None
     _market_status_label: ttk.Label | None
     _market_last_refresh: datetime | None
+    _market_cache_timestamp: datetime | None
     _calc_canvas: tk.Canvas
     sens_tree: ttk.Treeview
     holding_tree: ttk.Treeview
@@ -211,8 +215,9 @@ class RefinanceCalculatorApp:
         self.market_tree: ttk.Treeview | None = None
         self._market_status_label: ttk.Label | None = None
         self._market_last_refresh: datetime | None = None
+        self._market_cache_timestamp: datetime | None = None
 
-        self._load_market_rates()
+        self._load_market_rates(force=True)
         self._build_ui()
         self._calculate()
 
@@ -337,11 +342,19 @@ class RefinanceCalculatorApp:
 
         self.root.bind_all("<MouseWheel>", on_mousewheel)
 
-    def _load_market_rates(self) -> None:
+    def _load_market_rates(self, *, force: bool = False) -> None:
         """Load historical market rates from the FRED API when a key is configured."""
-        self.market_rates = []
-        self.market_error = None
-        self._market_last_refresh = None
+        now = datetime.now()
+        if (
+            not force
+            and self.market_rates
+            and self._market_cache_timestamp
+            and now - self._market_cache_timestamp < MARKET_CACHE_TTL
+        ):
+            logger.debug("Using cached market observation data")
+            self._market_last_refresh = self._market_cache_timestamp
+            self.market_error = None
+            return
 
         if not self.fred_api_key:
             self.market_error = "FRED_API_KEY is not configured; market history is disabled."
@@ -361,7 +374,9 @@ class RefinanceCalculatorApp:
             return
 
         self.market_rates = observations
-        self._market_last_refresh = datetime.now()
+        self._market_cache_timestamp = now
+        self._market_last_refresh = now
+        self.market_error = None
         latest_rate = self.market_rates[0][1]
         self.new_rate.set(f"{latest_rate:.3f}")
 
