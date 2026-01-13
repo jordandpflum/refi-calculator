@@ -52,39 +52,46 @@ def build_market_tab(
         command=app._refresh_market_data,
     ).pack(side=tk.LEFT)
 
-    notebook = ttk.Notebook(parent)
-    notebook.pack(fill=tk.BOTH, expand=True)
+    chart = MarketChart(parent)
+    chart.pack(fill=tk.X, pady=(0, 8))
 
-    for label, series_id in MARKET_SERIES:
-        tab_frame = ttk.Frame(notebook, padding=6)
-        setattr(tab_frame, "series_id", series_id)
+    table_frame = ttk.Frame(parent)
+    table_frame.pack(fill=tk.BOTH, expand=True)
 
-        chart = MarketChart(tab_frame)
-        chart.pack(fill=tk.X, pady=(0, 8))
+    labels = ["Date"] + [label for label, _ in MARKET_SERIES]
+    columns = ("date",) + tuple(label.lower().replace(" ", "_") for label in labels[1:])
+    tree = ttk.Treeview(table_frame, columns=columns, show="headings", height=12)
+    tree.heading("date", text="Date")
+    tree.column("date", width=130, anchor=tk.W)
+    for label, column in zip(labels[1:], columns[1:]):
+        tree.heading(column, text=label)
+        tree.column(column, width=100, anchor=tk.E)
 
-        tree_frame = ttk.Frame(tab_frame)
-        tree_frame.pack(fill=tk.BOTH, expand=True)
+    scrollbar = ttk.Scrollbar(table_frame, orient="vertical", command=tree.yview)
+    tree.configure(yscrollcommand=scrollbar.set)
+    tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+    scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
-        columns = ("date", "rate")
-        tree = ttk.Treeview(tree_frame, columns=columns, show="headings", height=12)
-        tree.heading("date", text="Date")
-        tree.heading("rate", text="Rate")
-        tree.column("date", width=130, anchor=tk.W)
-        tree.column("rate", width=110, anchor=tk.E)
+    legend_frame = ttk.Frame(parent)
+    legend_frame.pack(anchor=tk.W, pady=(6, 0))
+    colors = ["#2563eb", "#ec4899", "#16a34a", "#f59e0b"]
+    for idx, (label, _) in enumerate(MARKET_SERIES):
+        swatch = tk.Label(
+            legend_frame,
+            text=" ",
+            width=2,
+            bg=colors[idx % len(colors)],
+            relief=tk.SUNKEN,
+        )
+        swatch.pack(side=tk.LEFT, padx=(0, 2))
+        ttk.Label(
+            legend_frame,
+            text=label,
+            font=("Segoe UI", 8),
+        ).pack(side=tk.LEFT, padx=(0, 8))
 
-        scrollbar = ttk.Scrollbar(tree_frame, orient="vertical", command=tree.yview)
-        tree.configure(yscrollcommand=scrollbar.set)
-
-        tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        app.market_chart_widgets[series_id] = chart
-        app.market_table_widgets[series_id] = tree
-        notebook.add(tab_frame, text=label)
-
-    notebook.bind("<<NotebookTabChanged>>", lambda event: app._update_market_status_display())
-
-    app.market_notebook = notebook
+    app.market_chart = chart
+    app.market_tree = tree
     app._market_status_label = status_label
     app._market_cache_indicator = cache_indicator
 

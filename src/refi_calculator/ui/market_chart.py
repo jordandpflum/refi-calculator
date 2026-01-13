@@ -38,53 +38,47 @@ class MarketChart(tk.Canvas):
         self.height = height
         self.padding = {"left": 40, "right": 20, "top": 20, "bottom": 40}
 
-    def plot(self, data: list[tuple[str, float]]) -> None:
-        """Draw a line chart for the provided (date, rate) points.
+    def plot(self, series_data: dict[str, list[tuple[str, float]]]) -> None:
+        """Draw a multi-line chart for the supplied rate series.
 
         Args:
-            data: Date/rate pairs ordered newest-first.
+            series_data: Mapping of series label to date/rate pairs (newest-first).
         """
         self.delete("all")
-        if not data:
+        filtered = {
+            label: list(reversed(points)) for label, points in series_data.items() if points
+        }
+        if not filtered:
             return
 
-        points = list(reversed(data))
-        values = [rate for _, rate in points]
-
-        min_points = 2
-        if len(values) < min_points:
-            self.create_text(
-                self.width // 2,
-                self.height // 2,
-                text="Not enough data to plot.",
-                fill="#888",
-            )
+        all_values = [rate for points in filtered.values() for _, rate in points]
+        if not all_values:
             return
 
-        min_rate = min(values)
-        max_rate = max(values)
+        min_rate = min(all_values)
+        max_rate = max(all_values)
         rate_range = max_rate - min_rate if max_rate != min_rate else 1
 
         plot_width = self.width - self.padding["left"] - self.padding["right"]
         plot_height = self.height - self.padding["top"] - self.padding["bottom"]
 
-        def x_coord(idx: int) -> float:
-            return self.padding["left"] + (idx / (len(points) - 1)) * plot_width
+        def x_coord(idx: int, total: int) -> float:
+            return self.padding["left"] + (idx / max(total - 1, 1)) * plot_width
 
         def y_coord(value: float) -> float:
             return self.padding["top"] + (1 - (value - min_rate) / rate_range) * plot_height
 
-        coords = []
-        for idx, (_, rate) in enumerate(points):
-            coords.append((x_coord(idx), y_coord(rate)))
-
-        for i in range(len(coords) - 1):
+        colors = ["#2563eb", "#ec4899", "#16a34a", "#f59e0b"]
+        for idx, (label, points) in enumerate(filtered.items()):
+            coords = [
+                (x_coord(i, len(points)), y_coord(rate)) for i, (_, rate) in enumerate(points)
+            ]
+            min_coords = 2
+            if len(coords) < min_coords:
+                continue
             self.create_line(
-                coords[i][0],
-                coords[i][1],
-                coords[i + 1][0],
-                coords[i + 1][1],
-                fill="#2563eb",
+                *[component for point in coords for component in point],
+                fill=colors[idx % len(colors)],
                 width=2,
             )
 
@@ -103,6 +97,27 @@ class MarketChart(tk.Canvas):
             fill="#333",
         )
 
+        legend_x = self.width - self.padding["right"] - 110
+        legend_y = self.padding["top"] + 10
+        for idx, label in enumerate(filtered.keys()):
+            color = colors[idx % len(colors)]
+            self.create_line(
+                legend_x,
+                legend_y + idx * 16,
+                legend_x + 20,
+                legend_y + idx * 16,
+                fill=color,
+                width=2,
+            )
+            self.create_text(
+                legend_x + 25,
+                legend_y + idx * 16,
+                text=label,
+                anchor=tk.W,
+                font=("Segoe UI", 8),
+                fill="#444",
+            )
+
         self.create_text(
             self.width // 2,
             self.height - 10,
@@ -110,7 +125,6 @@ class MarketChart(tk.Canvas):
             font=("Segoe UI", 8),
             fill="#666",
         )
-
         self.create_text(
             self.padding["left"] - 5,
             self.padding["top"],
@@ -119,7 +133,6 @@ class MarketChart(tk.Canvas):
             font=("Segoe UI", 8),
             fill="#666",
         )
-
         self.create_text(
             self.padding["left"] - 5,
             self.height - self.padding["bottom"],

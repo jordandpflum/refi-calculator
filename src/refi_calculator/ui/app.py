@@ -68,9 +68,8 @@ class RefinanceCalculatorApp:
         market_series_data: Historical rate observations keyed by series id
         market_series_errors: Load errors keyed by series id
         market_cache_timestamps: Cache timestamps keyed by series id
-        market_table_widgets: Table widgets keyed by series id
-        market_chart_widgets: Chart widgets keyed by series id
-        market_notebook: Notebook containing the series tabs
+        market_chart: Chart widget displaying all series
+        market_tree: Table showing side-by-side tenor values
         market_series_display_names: Display labels keyed by series id
         _market_status_label: Label describing market data status
         _market_cache_indicator: Cache freshness badge
@@ -138,9 +137,8 @@ class RefinanceCalculatorApp:
     market_series_data: dict[str, list[tuple[str, float]]]
     market_series_errors: dict[str, str | None]
     market_cache_timestamps: dict[str, datetime | None]
-    market_table_widgets: dict[str, ttk.Treeview]
-    market_chart_widgets: dict[str, MarketChart]
-    market_notebook: ttk.Notebook | None
+    market_chart: MarketChart | None
+    market_tree: ttk.Treeview | None
     market_series_display_names: dict[str, str]
     _market_status_label: ttk.Label | None
     _market_cache_indicator: ttk.Label | None
@@ -228,9 +226,8 @@ class RefinanceCalculatorApp:
         self.market_cache_timestamps: dict[str, datetime | None] = {
             series_id: None for _, series_id in MARKET_SERIES
         }
-        self.market_table_widgets: dict[str, ttk.Treeview] = {}
-        self.market_chart_widgets: dict[str, MarketChart] = {}
-        self.market_notebook: ttk.Notebook | None = None
+        self.market_chart: MarketChart | None = None
+        self.market_tree: ttk.Treeview | None = None
         self.market_series_display_names = {series_id: label for label, series_id in MARKET_SERIES}
         self._market_status_label: ttk.Label | None = None
         self._market_cache_indicator: ttk.Label | None = None
@@ -346,11 +343,8 @@ class RefinanceCalculatorApp:
                 if sub_index == 0 and hasattr(self, "amort_tree"):
                     self.amort_tree.yview_scroll(delta, "units")
                 # Chart tab has no vertical scroll
-            elif top_index == MARKET_TAB_INDEX and self.market_notebook:
-                series_id = self._selected_market_series_id()
-                tree = self.market_table_widgets.get(series_id) if series_id else None
-                if tree:
-                    tree.yview_scroll(delta, "units")
+            elif top_index == MARKET_TAB_INDEX and self.market_tree:
+                self.market_tree.yview_scroll(delta, "units")
             elif top_index == INFO_TAB_INDEX and hasattr(self, "info_notebook"):
                 # Info tab
                 sub_index = self.info_notebook.index(self.info_notebook.select())
@@ -426,75 +420,77 @@ class RefinanceCalculatorApp:
         if not self._market_status_label:
             return
 
-        for _, series_id in MARKET_SERIES:
-            tree = self.market_table_widgets.get(series_id)
-            if not tree:
-                continue
+        if self.market_tree:
+            for row in self.market_tree.get_children():
+                self.market_tree.delete(row)
 
-            for row in tree.get_children():
-                tree.delete(row)
+            merged = self._merged_market_rows()
+            for row in merged:
+                self.market_tree.insert("", tk.END, values=row)
 
-            rows = self.market_series_data.get(series_id) or []
-            for date_text, rate in rows:
-                tree.insert("", tk.END, values=(date_text, f"{rate:.3f}%"))
-
-            chart = self.market_chart_widgets.get(series_id)
-            if chart:
-                chart.plot(rows)
+        if self.market_chart:
+            chart_data = {
+                label: self.market_series_data.get(series_id, [])
+                for label, series_id in MARKET_SERIES
+            }
+            self.market_chart.plot(chart_data)
 
         self._update_market_status_display()
 
-    def _selected_market_series_id(self) -> str | None:
-        """Return the currently active market series id from the notebook."""
-        if not self.market_notebook:
-            return None
+    def _merged_market_rows(self) -> list[tuple[str, ...]]:
+        """Combine series data into a unified table (newest first)."""
+        date_sets: set[str] = set()
+        series_maps: dict[str, dict[str, float]] = {}
+        for _, series_id in MARKET_SERIES:
+            rows = self.market_series_data.get(series_id, [])
+            series_maps[series_id] = {date: rate for date, rate in rows}
+            date_sets.update(series_maps[series_id].keys())
 
-        current_tab = self.market_notebook.select()
-        if not current_tab:
-            return None
-
-        widget = self.root.nametowidget(current_tab)
-        return getattr(widget, "series_id", None)
+        sorted_dates = sorted(date_sets, reverse=True)
+        result: list[tuple[str, ...]] = []
+        for date in sorted_dates:
+            row = [date]
+            for _, series_id in MARKET_SERIES:
+                rate = series_maps.get(series_id, {}).get(date)
+                row.append(f"{rate:.3f}%" if rate is not None else "—")
+            result.append(tuple(row))
+        return result
 
     def _update_market_status_display(self) -> None:
         """Refresh the market status text and cache indicator for the selected series."""
         if not self._market_status_label:
             return
 
-        series_id = self._selected_market_series_id()
-        if not series_id:
-            return
+        parts: list[str] = []
+        timestamps: list[datetime] = []
+        for label, series_id in MARKET_SERIES:
+            rows = self.market_series_data.get(series_id)
+            error = self.market_series_errors.get(series_id)
+            if not rows:
+                parts.append(f"{label}: {error or 'unavailable'}")
+                continue
+            latest_date, latest_rate = rows[0]
+            parts.append(f"{label}: {latest_rate:.3f}% ({latest_date})")
+            timestamp = self.market_cache_timestamps.get(series_id)
+            if timestamp:
+                timestamps.append(timestamp)
 
-        display_name = self.market_series_display_names.get(series_id, series_id)
-        rows = self.market_series_data.get(series_id)
-        error = self.market_series_errors.get(series_id)
+        status_text = " | ".join(parts) if parts else "Market data is not available."
+        if timestamps:
+            latest_cs = max(timestamps)
+            status_text += f" - refreshed {latest_cs:%Y-%m-%d %H:%M}"
 
-        if not rows:
-            status_text = error or f"{display_name} data is not available at the moment."
-            self._market_status_label.config(text=status_text, foreground="red")
-            self._update_market_cache_indicator(series_id)
-            return
+        self._market_status_label.config(text=status_text, foreground="black" if parts else "red")
+        self._update_market_cache_indicator(max(timestamps) if timestamps else None)
 
-        latest_date, latest_rate = rows[0]
-        status_text = f"{display_name} rate: {latest_rate:.3f}% ({latest_date})"
-        timestamp = self.market_cache_timestamps.get(series_id)
-        if timestamp:
-            status_text += f" - refreshed {timestamp:%Y-%m-%d %H:%M}"
-
-        self._market_status_label.config(text=status_text, foreground="black")
-        self._update_market_cache_indicator(series_id)
-
-    def _update_market_cache_indicator(self, series_id: str | None = None) -> None:
+    def _update_market_cache_indicator(self, timestamp: datetime | None = None) -> None:
         """Update the cache status indicator label below the Market tab header."""
         if not self._market_cache_indicator:
             return
 
-        if not series_id:
-            series_id = self._selected_market_series_id()
-        if not series_id:
-            return
-
-        timestamp = self.market_cache_timestamps.get(series_id)
+        if timestamp is None:
+            timestamps = [ts for ts in self.market_cache_timestamps.values() if ts is not None]
+            timestamp = max(timestamps) if timestamps else None
         if not timestamp:
             self._market_cache_indicator.config(
                 text="Cache: not populated",
