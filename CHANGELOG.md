@@ -1,12 +1,11 @@
 # Changelog
 
-## [Unreleased]
+## [0.4.0]
 
 - Expanded the Loan Visualizations section by renaming the tab, adding a cumulative interest
   delta column, and including both the enhanced cumulative savings chart (with axis ticks and
   zero-line label) and a new amortization balance comparison chart so users can see how both loans
   evolve over time.
-
 - Load configuration early by reading any `.env` file before spawning the UI so CLI scripts can
   inject runtime variables without touching the host environment.
 
