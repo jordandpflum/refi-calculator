@@ -36,7 +36,7 @@ class MarketChart(tk.Canvas):
         )
         self.width = width
         self.height = height
-        self.padding = {"left": 40, "right": 20, "top": 20, "bottom": 40}
+        self.padding = {"left": 70, "right": 20, "top": 20, "bottom": 40}
 
     def plot(self, series_data: dict[str, list[tuple[str, float]]]) -> None:
         """Draw a multi-line chart for the supplied rate series.
@@ -154,7 +154,7 @@ class MarketChart(tk.Canvas):
             fill="#444",
         )
         self.create_text(
-            self.padding["left"] - 45,
+            self.padding["left"] - 55,
             (self.height + self.padding["top"] - self.padding["bottom"]) // 2,
             text="Rate (%)",
             angle=90,
@@ -182,30 +182,6 @@ class MarketChart(tk.Canvas):
                 font=("Segoe UI", 8),
                 fill="#444",
             )
-
-        self.create_text(
-            self.width // 2,
-            self.height - 10,
-            text="Date (oldest → newest)",
-            font=("Segoe UI", 8),
-            fill="#666",
-        )
-        self.create_text(
-            self.padding["left"] - 5,
-            self.padding["top"],
-            text=f"{max_rate:.2f}%",
-            anchor=tk.E,
-            font=("Segoe UI", 8),
-            fill="#666",
-        )
-        self.create_text(
-            self.padding["left"] - 5,
-            self.height - self.padding["bottom"],
-            text=f"{min_rate:.2f}%",
-            anchor=tk.E,
-            font=("Segoe UI", 8),
-            fill="#666",
-        )
 
 
 __all__ = ["MarketChart"]
