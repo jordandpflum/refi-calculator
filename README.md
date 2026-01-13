@@ -32,14 +32,24 @@ poetry install
 This command creates the virtual environment, installs dependencies, and prepares the hooks defined
 in `.pre-commit-config.yaml`.
 
+For a global CLI install, use `pipx` once the package is published, or run a local install with:
+
+```bash
+pipx install refi-calculator
+# or (for development)
+pip install -e .
+```
+
 ### Running the GUI
 
 ```bash
-poetry run python bin/refi-calculator.py
+poetry run refi-calculator
 ```
 
-The script boots the Tkinter application (`src/refi_calculator/ui/app.py`) that ties together all
-the analysis helpers.
+The `refi-calculator` console script launches the Tkinter application
+(`src/refi_calculator/ui/app.py`) without invoking Python manually. When installed globally the
+command is available directly from the shell, and when running from the repository the same command
+can be executed via `poetry run`.
 
 ## Testing & Quality
 
@@ -67,6 +77,7 @@ Add new tests under `tests/` following the `test_*.py` pattern whenever you enha
     - `app.py`: The main application wiring.
     - `chart.py`: Custom savings chart canvas.
     - `builders/`: Tab-specific builders and helpers for clean separation of UI concerns.
+- `src/refi_calculator/cli.py`: CLI launcher exposed via the `refi-calculator` console script.
 - `bin/refi-calculator.py`: Entry point that runs the GUI.
 
 ## Contributing
