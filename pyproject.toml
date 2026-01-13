@@ -17,7 +17,7 @@ homepage = "https://github.com/jordandpflum/refi-calculator"
 repository = "https://github.com/jordandpflum/refi-calculator"
 
 [tool.poetry]
-packages = [{ include = "refi-calculator", from = "src" }]
+packages = [{ include = "refi_calculator", from = "src" }]
 version = "0.0.0"
 
 [tool.poetry.group.dev.dependencies]

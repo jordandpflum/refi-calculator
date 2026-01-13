@@ -21,17 +21,29 @@ class LoanParams:
 
     @property
     def monthly_rate(self) -> float:
-        """Monthly interest rate."""
+        """Monthly interest rate.
+
+        Returns:
+            Monthly interest rate as a decimal.
+        """
         return self.rate / 12
 
     @property
     def num_payments(self) -> int:
-        """Total number of monthly payments."""
+        """Total number of monthly payments.
+
+        Returns:
+            Total number of payments.
+        """
         return int(self.term_years * 12)
 
     @property
     def monthly_payment(self) -> float:
-        """Monthly payment using the standard amortization formula."""
+        """Monthly payment using the standard amortization formula.
+
+        Returns:
+            Monthly payment amount.
+        """
         r = self.monthly_rate
         n = self.num_payments
         if r == 0:
@@ -109,7 +121,10 @@ class RefinanceAnalysis:
     total_cost_npv_advantage: float
 
 
-__all__ = ["LoanParams", "RefinanceAnalysis"]
+__all__ = [
+    "LoanParams",
+    "RefinanceAnalysis",
+]
 
 __description__ = """
 Data models for refinance calculation results.

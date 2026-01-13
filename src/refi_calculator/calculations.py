@@ -105,7 +105,18 @@ def _build_cumulative_savings(
     chart_months: int,
     schedule_months: int,
 ) -> tuple[list[tuple[int, float, float]], int | None]:
-    """Build cumulative savings timeline for charting."""
+    """Build cumulative savings timeline for charting.
+
+    Args:
+        monthly_savings: Monthly savings amount
+        closing_costs: Closing costs for refinance
+        monthly_opp_rate: Monthly opportunity cost rate (as a decimal)
+        chart_months: Number of months to show on chart
+        schedule_months: Total months in loan schedule
+
+    Returns:
+        Tuple of (list of (month, nominal savings, NPV savings), NPV breakeven month)
+    """
     cumulative_savings: list[tuple[int, float, float]] = [(0, -closing_costs, -closing_costs)]
     cum_pv = 0.0
     cum_nominal = -closing_costs
@@ -127,7 +138,17 @@ def _calculate_npv_window(
     closing_costs: float,
     window_months: int,
 ) -> float:
-    """Calculate NPV over a fixed window."""
+    """Calculate NPV over a fixed window.
+
+    Args:
+        monthly_savings: Monthly savings amount
+        monthly_opp_rate: Monthly opportunity cost rate (as a decimal)
+        closing_costs: Closing costs for refinance
+        window_months: Number of months in NPV window
+
+    Returns:
+        NPV over the specified window
+    """
     npv = -closing_costs
     for month in range(1, window_months + 1):
         npv += monthly_savings / ((1 + monthly_opp_rate) ** month)
@@ -140,7 +161,17 @@ def _find_npv_breakeven(
     closing_costs: float,
     schedule_months: int,
 ) -> int | None:
-    """Find NPV breakeven month within a schedule."""
+    """Find NPV breakeven month within a schedule.
+
+    Args:
+        monthly_savings: Monthly savings amount
+        monthly_opp_rate: Monthly opportunity cost rate (as a decimal)
+        closing_costs: Closing costs for refinance
+        schedule_months: Total months in loan schedule
+
+    Returns:
+        NPV breakeven month, or None if not reached within schedule
+    """
     cum_pv = 0.0
     for month in range(1, schedule_months + 1):
         cum_pv += monthly_savings / ((1 + monthly_opp_rate) ** month)
@@ -249,6 +280,11 @@ def analyze_refinance(
     current_after_tax_total_interest = current_loan.total_interest * (1 - marginal_tax_rate)
     new_after_tax_total_interest = new_loan.total_interest * (1 - marginal_tax_rate)
 
+    accelerated_months: int | None = None
+    accelerated_total_interest: float | None = None
+    accelerated_interest_savings: float | None = None
+    accelerated_time_savings_months: int | None = None
+
     # Accelerated payoff calculations (if maintaining current payment)
     if maintain_payment and current_loan.monthly_payment > new_loan.monthly_payment:
         # User wants to keep paying the old (higher) amount
@@ -260,7 +296,8 @@ def analyze_refinance(
         if acc_months:
             accelerated_months = acc_months
             accelerated_total_interest = acc_interest
-            accelerated_interest_savings = new_loan.total_interest - acc_interest
+            if acc_interest is not None:
+                accelerated_interest_savings = new_loan.total_interest - acc_interest
             accelerated_time_savings_months = new_loan.num_payments - acc_months
 
     # Total cost NPV calculations

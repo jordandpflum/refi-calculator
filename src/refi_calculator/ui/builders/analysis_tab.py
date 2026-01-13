@@ -10,15 +10,15 @@ if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp
 
 
-def build_sensitivity_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_sensitivity_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build the sensitivity analysis tree.
 
     Args:
         app: App instance owning the sensitivity data.
         parent: Container frame for the sensitivity tab.
-
-    Returns:
-        None.
     """
     ttk.Label(
         parent,
@@ -46,15 +46,15 @@ def build_sensitivity_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> Non
     ).pack(pady=10)
 
 
-def build_holding_period_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_holding_period_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build the holding period analysis tree.
 
     Args:
         app: App instance owning the holding period data.
         parent: Container frame for the holding period tab.
-
-    Returns:
-        None.
     """
     ttk.Label(parent, text="NPV by Holding Period", font=("Segoe UI", 10, "bold")).pack(
         anchor=tk.W,
@@ -82,7 +82,10 @@ def build_holding_period_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> 
     )
 
 
-__all__ = ["build_sensitivity_tab", "build_holding_period_tab"]
+__all__ = [
+    "build_sensitivity_tab",
+    "build_holding_period_tab",
+]
 
 __description__ = """
 Constructors for the analysis sub-tabs.

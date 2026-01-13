@@ -7,21 +7,21 @@ from tkinter import ttk
 from typing import TYPE_CHECKING
 
 from ..chart import SavingsChart
-from ..helpers import result_block
+from .helpers import result_block
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp
 
 
-def build_amortization_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_amortization_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build amortization comparison tree and summary.
 
     Args:
         app: Application instance owning the amortization data.
         parent: Frame that contains amortization widgets.
-
-    Returns:
-        None.
     """
     ttk.Label(
         parent,
@@ -85,15 +85,15 @@ def build_amortization_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> No
     ).pack(pady=10)
 
 
-def build_chart_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
+def build_chart_tab(
+    app: RefinanceCalculatorApp,
+    parent: ttk.Frame,
+) -> None:
     """Build cumulative savings chart tab.
 
     Args:
         app: App instance providing chart parameters.
         parent: Frame used for the chart canvas.
-
-    Returns:
-        None.
     """
     chart_years = int(float(app.chart_horizon_years.get() or 10))
     ttk.Label(
@@ -106,7 +106,10 @@ def build_chart_tab(app: RefinanceCalculatorApp, parent: ttk.Frame) -> None:
     app.chart.pack(fill=tk.BOTH, expand=True)
 
 
-__all__ = ["build_amortization_tab", "build_chart_tab"]
+__all__ = [
+    "build_amortization_tab",
+    "build_chart_tab",
+]
 
 __description__ = """
 Builders for the visuals sub-tabs.
