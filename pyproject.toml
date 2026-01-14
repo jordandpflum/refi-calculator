@@ -28,7 +28,7 @@ repository = "https://github.com/jordandpflum/refi-calculator"
 
 [project.scripts]
 refi-calculator = "refi_calculator.gui.app:main"
-refi-calculator-web = "refi_calculator.web.app:main"
+refi-calculator-web = "refi_calculator.web.runner:main"
 
 [tool.poetry]
 packages = [{ include = "refi_calculator", from = "src" }]

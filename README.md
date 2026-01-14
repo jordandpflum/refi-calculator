@@ -65,9 +65,9 @@ The `refi-calculator` console script now launches the Tkinter application expose
 ### Running the Web placeholder
 
 After installing the web optional dependencies (`pip install .[web]`), run `poetry run
-refi-calculator-web` to launch the Streamlit placeholder at `refi_calculator.web.app:main`. This
-command will show the upcoming web interface scaffold while the full Streamlit workflow is still
-under construction.
+refi-calculator-web` to launch the Streamlit placeholder. That console script now invokes the
+Streamlit CLI (`streamlit run .../src/refi_calculator/web/app.py`) so you get the normal script
+context and browser experience while the full Streamlit workflow is still under construction.
 
 ## Testing & Quality
 
