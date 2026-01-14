@@ -8,7 +8,10 @@ license-files = ["LICENSE.txt"]
 keywords = ["Refi Calculator"]
 authors = [{ name = "Jordan Pflum", email = "jordandpflum@gmail.com" }]
 maintainers = [{ name = "Jordan Pflum", email = "jordandpflum@gmail.com" }]
-classifiers = ["Programming Language :: Python :: 3.13"]
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "License :: OSI Approved :: Apache Software License",
+]
 dynamic = ["version"]
 dependencies = []
 
