@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.6.0]
+
+- Split shared calculations, models, and chart helpers into the new `refi_calculator.core`
+  package so non-GUI clients can import the refinance logic without dragging in optional UI
+  dependencies, plus added a lightweight import test to guard that split.
+- Added `gui` and `web` extras, point the `refi-calculator` console script at the Tkinter GUI, and
+  introduced a `refi-calculator-web` script that launches the Streamlit placeholder via the
+  official CLI so the upcoming web interface can be exercised with the proper extras.
+- Installed `--all-extras` in every workflow/install step and documented the Streamlit placeholder
+  requirements to keep CI builds and future web packaging aligned.
+
 ## [0.5.8]
 
 - Added `permissions.contents: write` to the executables workflow upload job so the built
