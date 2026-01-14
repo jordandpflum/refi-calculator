@@ -10,7 +10,6 @@ from streamlit.web import cli as stcli
 
 def main() -> None:
     """Run the Streamlit app via the CLI to ensure a proper ScriptRunContext."""
-
     script_path = Path(__file__).resolve().parent / "app.py"
     sys.argv = ["streamlit", "run", str(script_path)]
     stcli.main()

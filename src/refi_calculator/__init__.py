@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from .core import (
+    LoanParams,
+    RefinanceAnalysis,
     analyze_refinance,
     calculate_accelerated_payoff,
     calculate_total_cost_npv,
@@ -11,8 +13,6 @@ from .core import (
     generate_comparison_schedule,
     run_holding_period_analysis,
     run_sensitivity,
-    LoanParams,
-    RefinanceAnalysis,
 )
 from .gui import RefinanceCalculatorApp, SavingsChart, main
 

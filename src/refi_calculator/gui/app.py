@@ -9,7 +9,6 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from tkinter import filedialog, messagebox, ttk
 
-from ..environment import load_dotenv
 from ..core.calculations import (
     analyze_refinance,
     generate_amortization_schedule_pair,
@@ -19,6 +18,7 @@ from ..core.calculations import (
 )
 from ..core.market.fred import fetch_fred_series
 from ..core.models import RefinanceAnalysis
+from ..environment import load_dotenv
 from .builders.analysis_tab import build_holding_period_tab, build_sensitivity_tab
 from .builders.info_tab import build_background_tab, build_help_tab
 from .builders.main_tab import build_main_tab

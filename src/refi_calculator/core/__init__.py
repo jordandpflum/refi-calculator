@@ -12,7 +12,7 @@ from .calculations import (
     run_holding_period_analysis,
     run_sensitivity,
 )
-from .charts import build_linear_ticks, build_month_ticks, MIN_LINEAR_TICKS
+from .charts import MIN_LINEAR_TICKS, build_linear_ticks, build_month_ticks
 from .models import LoanParams, RefinanceAnalysis
 
 __all__: list[str] = [
