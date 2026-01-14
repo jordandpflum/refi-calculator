@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 from importlib.metadata import PackageNotFoundError, version
 from logging import basicConfig, getLogger
 
@@ -13,11 +14,8 @@ logger = getLogger(__name__)
 
 
 def _get_distribution_version() -> str | None:
-    """Return the distribution version if the package is installed.
-
-    Returns:
-        Distribution version string when available, otherwise None.
-    """
+    if env_version := os.environ.get("REFI_VERSION"):
+        return env_version
     try:
         return version("refi-calculator")
     except PackageNotFoundError:
