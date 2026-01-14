@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.5.8]
+
+- Added `permissions.contents: write` to the executables workflow upload job so the built
+  binaries can be published back to the GitHub release from CI.
+
+## [0.5.7]
+
+- Updated the release workflow to use a PAT for artifact uploads and switched the Windows
+  build step to `poetry install --no-plugins` so installs finish faster without optional
+  plugin hooks.
+
+## [0.5.6]
+
+- Removed the unnecessary `poetry config virtualenvs.prefer-active-python` setting so the
+  executables workflow can rely on Poetry’s defaults for virtual environments.
+
+## [0.5.5]
+
+- Configured Poetry cache and virtualenv paths on Windows and allowed the upload job to
+  run via `workflow_dispatch`, while dropping the redundant cache configuration step.
+
+## [0.5.4]
+
+- Let the build workflow respond to every release event (no manual type filter) and pointed
+  Poetry’s cache directory to the workspace to improve install performance.
+
+## [0.5.3]
+
+- Removed the `cache: "poetry"` flags from the setup-python steps and made the executable
+  builder trigger on both `created` and `published` release events to cover all releases.
+
+## [0.5.2]
+
+- Added a Windows executable build workflow that packages `refi-calculator` with PyInstaller
+  and uploads it as an artifact, and allowed the CLI to report a version from `REFI_VERSION`.
+
+## [0.5.1]
+
+- Gave the release workflow explicit `contents: write` permissions so CI can tag and publish
+  releases without permission failures.
+
+## [0.5.0]
+
+- Bumped the release pipeline to Python 3.13, install Poetry before `poetry install`, and
+  documented the Apache Software License classifier for the project metadata.
+
 ## [0.4.0]
 
 - Expanded the Loan Visualizations section by renaming the tab, adding a cumulative interest
