@@ -5,7 +5,7 @@ from __future__ import annotations
 import tkinter as tk
 from collections.abc import Callable
 
-MIN_LINEAR_TICKS = 2
+from ..core.charts import build_linear_ticks, build_month_ticks
 
 
 class SavingsChart(tk.Canvas):
@@ -199,7 +199,7 @@ class SavingsChart(tk.Canvas):
         plot_width: float,
         max_month: int,
     ) -> None:
-        for month in _build_month_ticks(max_month):
+        for month in build_month_ticks(max_month):
             x = left + (month / max_month) * plot_width
             self.create_line(x, bottom, x, bottom + 5, fill="#999")
             self.create_text(
@@ -221,7 +221,7 @@ class SavingsChart(tk.Canvas):
         y_range: float,
     ) -> None:
         top = self.padding["top"]
-        for value in _build_linear_ticks(y_min, y_max):
+        for value in build_linear_ticks(y_min, y_max):
             y = top + (1 - (value - y_min) / y_range) * plot_height
             self.create_line(left - 5, y, left, y, fill="#999")
             self.create_text(
@@ -388,7 +388,7 @@ class AmortizationChart(tk.Canvas):
         self.create_line(left, self.padding["top"], left, bottom, fill="#333")
         self.create_line(left, bottom, right, bottom, fill="#333")
 
-        for month in _build_month_ticks(max_month):
+        for month in build_month_ticks(max_month):
             x = left + (month / max_month) * plot_w
             self.create_line(x, bottom, x, bottom + 5, fill="#999")
             self.create_text(
@@ -400,7 +400,7 @@ class AmortizationChart(tk.Canvas):
                 fill="#666",
             )
 
-        for value in _build_linear_ticks(y_min, y_max):
+        for value in build_linear_ticks(y_min, y_max):
             y = self.padding["top"] + (1 - (value - y_min) / y_range) * plot_h
             self.create_line(left - 5, y, left, y, fill="#999")
             self.create_text(
@@ -447,49 +447,6 @@ class AmortizationChart(tk.Canvas):
             font=("Segoe UI", 7),
             fill="#666",
         )
-
-
-def _build_month_ticks(max_month: int, max_ticks: int = 6) -> list[int]:
-    """Generate tick positions for month-based axes."""
-    if max_month <= 0:
-        return [0]
-    tick_count = min(max_ticks, max_month + 1)
-    if tick_count <= 1:
-        return [max_month]
-
-    interval = max_month / (tick_count - 1)
-    ticks: list[int] = []
-    last = -1
-    for i in range(tick_count):
-        tick = int(round(i * interval))
-        if tick <= last:
-            tick = last + 1
-        tick = min(max_month, tick)
-        ticks.append(tick)
-        last = tick
-
-    if ticks[-1] != max_month:
-        ticks[-1] = max_month
-
-    return ticks
-
-
-def _build_linear_ticks(min_value: float, max_value: float, max_ticks: int = 5) -> list[float]:
-    """Generate linear axis tick values."""
-    if max_ticks < MIN_LINEAR_TICKS:
-        return [min_value, max_value]
-
-    span = max_value - min_value
-    if span == 0:
-        expansion = abs(max_value) or 1.0
-        min_value -= expansion / 2
-        max_value += expansion / 2
-        span = max_value - min_value
-
-    step = span / (max_ticks - 1)
-    ticks = [min_value + step * i for i in range(max_ticks)]
-    ticks[-1] = max_value
-    return ticks
 
 
 __all__ = [

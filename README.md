@@ -41,6 +41,9 @@ poetry install
 This command creates the virtual environment, installs dependencies, and prepares the hooks defined
 in `.pre-commit-config.yaml`.
 
+If you only need the GUI experience, install with `pip install .[gui]`; to enable the Streamlit
+placeholder or eventual web UI, install `pip install .[web]`.
+
 For a global CLI install, use `pipx` once the package is published, or run a local install with:
 
 ```bash
@@ -55,10 +58,16 @@ pip install -e .
 poetry run refi-calculator
 ```
 
-The `refi-calculator` console script launches the Tkinter application
-(`src/refi_calculator/ui/app.py`) without invoking Python manually. When installed globally the
-command is available directly from the shell, and when running from the repository the same command
-can be executed via `poetry run`.
+The `refi-calculator` console script now launches the Tkinter application exposed via
+`refi_calculator.gui.app:main`, so you can start the GUI with `poetry run refi-calculator` or via
+`pipx` once the package is installed globally.
+
+### Running the Web placeholder
+
+After installing the web optional dependencies (`pip install .[web]`), run `poetry run
+refi-calculator-web` to launch the Streamlit placeholder. That console script now invokes the
+Streamlit CLI (`streamlit run .../src/refi_calculator/web/app.py`) so you get the normal script
+context and browser experience while the full Streamlit workflow is still under construction.
 
 ## Testing & Quality
 
@@ -79,13 +88,13 @@ Add new tests under `tests/` following the `test_*.py` pattern whenever you enha
 
 ## Code Structure
 
-- `src/refi_calculator/models.py`: Dataclasses for `LoanParams` and `RefinanceAnalysis`.
-- `src/refi_calculator/calculations.py`: All refinance math helpers (NPV, amortization,
-  sensitivity, etc.).
-- `src/refi_calculator/ui/`: Tkinter GUI composed of:
+- `src/refi_calculator/core/`: Shared calculations, models, and utility helpers used by every
+  interface.
+- `src/refi_calculator/gui/`: Tkinter GUI composed of:
     - `app.py`: The main application wiring.
-    - `chart.py`: Custom savings chart canvas.
-    - `builders/`: Tab-specific builders and helpers for clean separation of UI concerns.
+    - `chart.py`: Custom savings chart canvas relying on shared helpers.
+    - `builders/`: Tab-specific builders and UI helpers.
+- `src/refi_calculator/web/`: Streamlit placeholder (future web UI) exposing `main()`.
 - `src/refi_calculator/cli.py`: CLI launcher exposed via the `refi-calculator` console script.
 - `bin/refi-calculator.py`: Entry point that runs the GUI.
 

@@ -22,7 +22,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --all-extras
 
       - name: Build package
         run: poetry build

@@ -1,10 +1,8 @@
-"""Refinance calculator package exports."""
+"""Shared core library for the refinance calculator package."""
 
 from __future__ import annotations
 
-from .core import (
-    LoanParams,
-    RefinanceAnalysis,
+from .calculations import (
     analyze_refinance,
     calculate_accelerated_payoff,
     calculate_total_cost_npv,
@@ -14,24 +12,25 @@ from .core import (
     run_holding_period_analysis,
     run_sensitivity,
 )
-from .gui import RefinanceCalculatorApp, SavingsChart, main
+from .charts import MIN_LINEAR_TICKS, build_linear_ticks, build_month_ticks
+from .models import LoanParams, RefinanceAnalysis
 
-__all__ = [
+__all__: list[str] = [
     "analyze_refinance",
     "calculate_accelerated_payoff",
     "calculate_total_cost_npv",
-    "generate_amortization_schedule_pair",
     "generate_amortization_schedule",
+    "generate_amortization_schedule_pair",
     "generate_comparison_schedule",
     "run_holding_period_analysis",
     "run_sensitivity",
     "LoanParams",
     "RefinanceAnalysis",
-    "RefinanceCalculatorApp",
-    "SavingsChart",
-    "main",
+    "MIN_LINEAR_TICKS",
+    "build_month_ticks",
+    "build_linear_ticks",
 ]
 
 __description__ = """
-Root package for the refinance calculator application.
+Common calculations, models, and chart helpers that can be shared across interfaces.
 """

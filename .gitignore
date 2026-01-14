@@ -144,3 +144,6 @@ common/tags
 
 # Lazy Git
 lazygit
+
+# Streamlit
+.streamlit/secrets.toml

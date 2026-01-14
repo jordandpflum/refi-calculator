@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install pyinstaller
-          poetry install --no-plugins
+          poetry install --no-plugins --all-extras
 
       - name: Build executable
         run: |

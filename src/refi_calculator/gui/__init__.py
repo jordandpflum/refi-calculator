@@ -1,4 +1,4 @@
-"""UI helpers for the refinance calculator."""
+"""GUI helpers for the refinance calculator."""
 
 from __future__ import annotations
 
@@ -8,5 +8,5 @@ from .chart import SavingsChart
 __all__ = ["RefinanceCalculatorApp", "main", "SavingsChart"]
 
 __description__ = """
-Tkinter-based UI exports for the refinance calculator.
+Tkinter-based GUI exports for the refinance calculator.
 """
