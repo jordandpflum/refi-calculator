@@ -2,7 +2,7 @@ name: Build Executables
 
 on:
   release:
-    types: [created]
+    types: [created, published]
   workflow_dispatch: # manual trigger for testing
 
 jobs:
