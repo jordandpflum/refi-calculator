@@ -2,7 +2,6 @@ name: Build Executables
 
 on:
   release:
-    types: [created, published]
   workflow_dispatch: # manual trigger for testing
 
 jobs:
@@ -14,6 +13,9 @@ jobs:
 
       - name: Install Poetry
         run: pipx install poetry
+
+      - name: Configure Poetry cache
+        run: poetry config cache-dir "${{ github.workspace }}/.poetry-cache"
 
       - name: Set up Python
         uses: actions/setup-python@v5
