@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from tkinter import filedialog, messagebox, ttk
 
+from ..environment import load_dotenv
 from ..core.calculations import (
     analyze_refinance,
     generate_amortization_schedule_pair,
@@ -29,6 +30,7 @@ from .market_chart import MarketChart
 from .market_constants import MARKET_DEFAULT_PERIOD, MARKET_SERIES
 
 logger = getLogger(__name__)
+load_dotenv()
 
 # ruff: noqa: PLR0915, PLR0912
 
