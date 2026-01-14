@@ -14,8 +14,11 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Configure Poetry cache
-        run: poetry config cache-dir "${{ github.workspace }}/.poetry-cache"
+      - name: Configure Poetry paths (avoid C vs D relpath crash)
+        run: |
+          poetry config cache-dir "C:\pypoetry-cache"
+          poetry config virtualenvs.path "C:\pypoetry-venvs"
+          poetry config virtualenvs.prefer-active-python true
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -40,7 +43,7 @@ jobs:
   upload-to-release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
 
     steps:
       - name: Download all artifacts
