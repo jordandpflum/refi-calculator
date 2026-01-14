@@ -14,9 +14,6 @@ jobs:
       - name: Install Poetry
         run: pipx install poetry
 
-      - name: Configure Poetry cache
-        run: poetry config cache-dir "${{ github.workspace }}/.poetry-cache"
-
       - name: Configure Poetry paths (avoid C vs D relpath crash)
         run: |
           poetry config cache-dir "C:\pypoetry-cache"
