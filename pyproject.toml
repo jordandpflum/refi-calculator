@@ -15,13 +15,20 @@ classifiers = [
 dynamic = ["version"]
 dependencies = []
 
+[project.optional-dependencies]
+gui = []
+web = [
+  "streamlit>=1.28.0,<2.0.0",
+  "plotly>=5.18.0,<6.0.0",
+]
 
 [project.urls]
 homepage = "https://github.com/jordandpflum/refi-calculator"
 repository = "https://github.com/jordandpflum/refi-calculator"
 
 [project.scripts]
-refi-calculator = "refi_calculator.cli:main"
+refi-calculator = "refi_calculator.gui.app:main"
+refi-calculator-web = "refi_calculator.web.app:main"
 
 [tool.poetry]
 packages = [{ include = "refi_calculator", from = "src" }]

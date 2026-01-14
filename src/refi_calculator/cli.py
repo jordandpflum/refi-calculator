@@ -8,7 +8,7 @@ from importlib.metadata import PackageNotFoundError, version
 from logging import basicConfig, getLogger
 
 from refi_calculator.environment import load_dotenv
-from refi_calculator.ui.app import main as launch_gui
+from refi_calculator.gui.app import main as launch_gui
 
 logger = getLogger(__name__)
 

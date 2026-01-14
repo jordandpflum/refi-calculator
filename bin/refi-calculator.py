@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from refi_calculator.ui.app import main
+from refi_calculator.gui.app import main
 
 if __name__ == "__main__":
     main()

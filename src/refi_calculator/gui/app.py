@@ -9,15 +9,15 @@ from datetime import datetime, timedelta
 from logging import getLogger
 from tkinter import filedialog, messagebox, ttk
 
-from ..calculations import (
+from ..core.calculations import (
     analyze_refinance,
     generate_amortization_schedule_pair,
     generate_comparison_schedule,
     run_holding_period_analysis,
     run_sensitivity,
 )
-from ..market.fred import fetch_fred_series
-from ..models import RefinanceAnalysis
+from ..core.market.fred import fetch_fred_series
+from ..core.models import RefinanceAnalysis
 from .builders.analysis_tab import build_holding_period_tab, build_sensitivity_tab
 from .builders.info_tab import build_background_tab, build_help_tab
 from .builders.main_tab import build_main_tab
