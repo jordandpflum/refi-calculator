@@ -1,0 +1,22 @@
+site_name: Refi Calculator
+repo_url: https://github.com/jordandpflum/refi-calculator
+
+theme:
+  name: material
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - docs/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: [src] # adjust if your package is elsewhere
+
+nav:
+  - Home: index.md
+  - User Guide: guide.md
+  - API Reference: reference/

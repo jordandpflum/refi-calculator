@@ -23,14 +23,14 @@ class SavingsChart(tk.Canvas):
 
     def __init__(
         self,
-        parent,
-        width=400,
-        height=200,
+        parent: tk.Misc,
+        width: int = 400,
+        height: int = 200,
     ):
         """Initialize SavingsChart.
 
         Args:
-            parent: Parent Tkinter widget.
+            parent: Parent Tkinter widget (any widget subclass).
             width: Canvas width.
             height: Canvas height.
         """
@@ -295,14 +295,14 @@ class AmortizationChart(tk.Canvas):
 
     def __init__(
         self,
-        parent,
-        width=400,
-        height=220,
+        parent: tk.Misc,
+        width: int = 400,
+        height: int = 220,
     ):
         """Initialize AmortizationChart.
 
         Args:
-            parent: Parent Tkinter widget.
+            parent: Parent Tkinter widget (any widget subclass).
             width: Canvas width.
             height: Canvas height.
         """
