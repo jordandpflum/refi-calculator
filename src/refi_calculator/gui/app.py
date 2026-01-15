@@ -16,6 +16,7 @@ from ..core.calculations import (
     run_holding_period_analysis,
     run_sensitivity,
 )
+from ..core.market.constants import MARKET_DEFAULT_PERIOD, MARKET_SERIES
 from ..core.market.fred import fetch_fred_series
 from ..core.models import RefinanceAnalysis
 from ..environment import load_dotenv
@@ -27,7 +28,6 @@ from .builders.options_tab import build_options_tab
 from .builders.visuals_tab import build_amortization_tab, build_chart_tab
 from .chart import AmortizationChart, SavingsChart
 from .market_chart import MarketChart
-from .market_constants import MARKET_DEFAULT_PERIOD, MARKET_SERIES
 
 logger = getLogger(__name__)
 load_dotenv()

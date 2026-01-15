@@ -1,4 +1,4 @@
-"""Constants shared by the market data UI components."""
+"""Constants for market data processing in the ReFi calculator."""
 
 from __future__ import annotations
 
@@ -20,5 +20,5 @@ MARKET_DEFAULT_PERIOD = "12"
 __all__ = ["MARKET_SERIES", "MARKET_PERIOD_OPTIONS", "MARKET_DEFAULT_PERIOD"]
 
 __description__ = """
-Constants used by the market data tab.
+Constants for market data processing in the ReFi calculator.
 """
