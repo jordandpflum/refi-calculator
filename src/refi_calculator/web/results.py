@@ -3,10 +3,12 @@
 from __future__ import annotations
 
 from logging import getLogger
+from typing import cast
 
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+from pandas.io.formats.style import Styler
 
 from refi_calculator.core.models import RefinanceAnalysis
 from refi_calculator.web.calculator import CalculatorInputs
@@ -176,13 +178,8 @@ def render_balance_comparison_chart(amortization_data: list[dict]) -> None:
         st.info("Loan balance comparison will appear after running the calculator.")
         return
 
-    df = df[["year", "current_balance", "new_balance"]].rename(
-        columns={
-            "year": "Year",
-            "current_balance": "Current Balance",
-            "new_balance": "New Balance",
-        },
-    )
+    df = df[["year", "current_balance", "new_balance"]]
+    df.columns = ["Year", "Current Balance", "New Balance"]
     df["Year"] = df["Year"].astype(int)
 
     colors = {
@@ -374,23 +371,25 @@ def render_loan_visualizations_tab(
                 "balance_diff": "Balance Δ",
             },
         )
-        formatters = {
-            "Current Principal": "${:,.0f}",
-            "Current Interest": "${:,.0f}",
-            "Current Balance": "${:,.0f}",
-            "New Principal": "${:,.0f}",
-            "New Interest": "${:,.0f}",
-            "New Balance": "${:,.0f}",
-            "Principal Δ": "${:+,.0f}",
-            "Interest Δ": "${:+,.0f}",
-            "Balance Δ": "${:+,.0f}",
-        }
+        display_df = display_df.reset_index(drop=True)
 
-        styled = (
-            display_df.style.format(formatters)
-            .hide(axis="index")
-            .applymap(_interest_delta_style, subset=["Interest Δ"])
+        primary_columns = [
+            "Current Principal",
+            "Current Interest",
+            "Current Balance",
+            "New Principal",
+            "New Interest",
+            "New Balance",
+        ]
+        delta_columns = ["Principal Δ", "Interest Δ", "Balance Δ"]
+
+        styler = Styler(display_df)
+        styled = styler.format("${:,.0f}", subset=primary_columns).format(
+            "${:+,.0f}",
+            subset=delta_columns,
         )
+        styled = cast(Styler, styled)
+        styled = styled.applymap(_interest_delta_style, subset=["Interest Δ"])
         st.dataframe(styled, width="stretch")
 
 

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from logging import getLogger
+from typing import cast
 
 import pandas as pd
 import plotly.graph_objects as go
@@ -73,7 +74,7 @@ def _build_market_dataframe(
     for label, observations in raw_series.items():
         if not observations:
             continue
-        df = pd.DataFrame(observations, columns=["Date", label])
+        df = pd.DataFrame(observations, columns=pd.Index(["Date", label]))
         df["Date"] = pd.to_datetime(df["Date"])
         df.set_index("Date", inplace=True)
         frames.append(df)
@@ -100,7 +101,10 @@ def _filter_market_dataframe(
     if months is None or data.empty:
         return data
 
-    last_date = data.index.max()
+    last_date_raw = data.index.max()
+    if last_date_raw is pd.NaT:
+        return data
+    last_date = cast(pd.Timestamp, last_date_raw)
     cutoff = last_date - pd.DateOffset(months=months)
     return data.loc[data.index >= cutoff]
 
@@ -136,7 +140,13 @@ def _render_market_chart(data: pd.DataFrame) -> None:
     lower = max(min_rate - padding, 0)
     upper = max_rate + padding
 
-    date_span = data.index.max() - data.index.min()
+    first_date_raw = data.index.min()
+    last_date_raw = data.index.max()
+    if first_date_raw is pd.NaT or last_date_raw is pd.NaT:
+        return
+    first_date = cast(pd.Timestamp, first_date_raw)
+    last_date = cast(pd.Timestamp, last_date_raw)
+    date_span = cast(pd.Timedelta, last_date - first_date)
     months = date_span.days / 30
     use_year_only = months >= MARKET_AXIS_YEAR_THRESHOLD_MONTHS
     date_format = "%Y" if use_year_only else "%b %Y"
@@ -160,8 +170,8 @@ def _render_market_chart(data: pd.DataFrame) -> None:
         "tickangle": 0 if use_year_only else -45,
     }
     if use_year_only:
-        start_year = data.index.min().year
-        end_year = data.index.max().year
+        start_year = int(first_date.year)
+        end_year = int(last_date.year)
         xaxis_kwargs.update(
             {
                 "tickmode": "array",
@@ -213,7 +223,11 @@ def render_market_tab() -> None:
         return
 
     latest = latest_valid.iloc[-1].dropna()
-    latest_date = latest_valid.index.max().date()
+    latest_timestamp_raw = latest_valid.index.max()
+    if latest_timestamp_raw is pd.NaT:
+        st.info("Market data lacks recent observations.")
+        return
+    latest_date = cast(pd.Timestamp, latest_timestamp_raw).date()
     st.markdown(
         f"**Current rates (latest available as of {latest_date:%Y-%m-%d})**",
     )
