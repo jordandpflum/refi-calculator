@@ -10,6 +10,7 @@ from refi_calculator.core.models import RefinanceAnalysis
 from refi_calculator.web.calculator import (
     CalculatorInputs,
     collect_inputs,
+    ensure_option_state,
     prepare_auxiliary_data,
     run_analysis,
 )
@@ -17,9 +18,9 @@ from refi_calculator.web.info import render_info_tab
 from refi_calculator.web.market import render_market_tab
 from refi_calculator.web.results import (
     render_analysis_tab,
+    render_loan_visualizations_tab,
     render_options_tab,
     render_results,
-    render_visuals_tab,
 )
 
 logger = getLogger(__name__)
@@ -28,6 +29,7 @@ logger = getLogger(__name__)
 def main() -> None:
     """Render the refinance calculator Streamlit application."""
     logger.debug("Rendering Streamlit refinance calculator main screen.")
+    ensure_option_state()
     st.set_page_config(
         page_title="Refinance Calculator",
         layout="wide",
@@ -43,7 +45,7 @@ def main() -> None:
         [
             "Calculator",
             "Analysis",
-            "Visuals",
+            "Loan Visualizations",
             "Market",
             "Options",
             "Info",
@@ -67,7 +69,7 @@ def main() -> None:
         render_analysis_tab(inputs, sensitivity_data, holding_period_data)
 
     with visuals_tab:
-        render_visuals_tab(analysis, amortization_data)
+        render_loan_visualizations_tab(analysis, amortization_data)
 
     with market_tab:
         render_market_tab()

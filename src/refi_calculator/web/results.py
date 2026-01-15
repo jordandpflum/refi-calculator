@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from logging import getLogger
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -164,6 +165,63 @@ def render_cumulative_chart(analysis: RefinanceAnalysis) -> None:
         )
 
 
+def render_balance_comparison_chart(amortization_data: list[dict]) -> None:
+    """Plot loan balance comparison lines for current and new schedules."""
+    if not amortization_data:
+        st.info("Loan balance comparison will appear after running the calculator.")
+        return
+
+    df = pd.DataFrame(amortization_data)
+    if df.empty:
+        st.info("Loan balance comparison will appear after running the calculator.")
+        return
+
+    df = df[["year", "current_balance", "new_balance"]].rename(
+        columns={
+            "year": "Year",
+            "current_balance": "Current Balance",
+            "new_balance": "New Balance",
+        },
+    )
+    df["Year"] = df["Year"].astype(int)
+    melted = df.melt("Year", var_name="Loan", value_name="Balance")
+
+    chart = (
+        alt.Chart(melted)
+        .mark_line()
+        .encode(
+            x=alt.X("Year:Q", title="Year", axis=alt.Axis(format="d")),
+            y=alt.Y("Balance:Q", title="Loan Balance ($)"),
+            color=alt.Color(
+                "Loan:N",
+                legend=alt.Legend(title="Loan"),
+                scale=alt.Scale(
+                    domain=["Current Balance", "New Balance"],
+                    range=["#ef4444", "#16a34a"],
+                ),
+            ),
+            tooltip=[
+                alt.Tooltip("Year:Q", title="Year"),
+                alt.Tooltip("Loan:N", title="Loan"),
+                alt.Tooltip("Balance:Q", title="Balance", format=",.0f"),
+            ],
+        )
+        .interactive()
+    )
+
+    st.altair_chart(chart, width="stretch")
+
+
+def _interest_delta_style(value: str | float) -> str:
+    """Color interest delta values based on savings/costs."""
+    text = str(value).strip()
+    if text.startswith("-"):
+        return "color: green"
+    if text.startswith("+"):
+        return "color: red"
+    return ""
+
+
 def build_sensitivity_display(
     data: list[dict],
     npv_years: int,
@@ -216,6 +274,20 @@ def build_holding_display(data: list[dict]) -> pd.DataFrame:
     )
 
 
+RECOMMENDATION_COLORS = {
+    "Strong Yes": "green",
+    "Yes": "darkgreen",
+    "Marginal": "orange",
+    "No": "red",
+}
+
+
+def _recommendation_style(value: str) -> str:
+    """Return CSS style string for recommendation text."""
+    color = RECOMMENDATION_COLORS.get(value, "inherit")
+    return f"color: {color}"
+
+
 def render_analysis_tab(
     inputs: CalculatorInputs,
     sensitivity_data: list[dict],
@@ -236,72 +308,123 @@ def render_analysis_tab(
         if display.empty:
             st.info("Adjust the sensitivity controls to generate scenarios.")
         else:
-            st.dataframe(display, width="stretch")
+            st.dataframe(display.style.hide(axis="index"), width="stretch")
 
     with holding_tab:
         display = build_holding_display(holding_period_data)
         if display.empty:
             st.info("Holding period analysis will populate once inputs are available.")
         else:
-            st.dataframe(display, width="stretch")
+            styled = display.style.hide(axis="index").applymap(
+                _recommendation_style,
+                subset=["Recommendation"],
+            )
+            st.dataframe(styled, width="stretch")
 
 
-def render_visuals_tab(
+def render_loan_visualizations_tab(
     analysis: RefinanceAnalysis,
     amortization_data: list[dict],
 ) -> None:
-    """Render visuals content including the cumulative chart and amortization view.
+    """Render the loan visualization subtabs for charts and tables.
 
     Args:
         analysis: Analysis output for the current inputs.
         amortization_data: Comparison schedule data.
     """
-    st.subheader("Cumulative Savings")
-    render_cumulative_chart(analysis)
+    st.subheader("Loan Visualizations")
+    chart_tab, amort_tab = st.tabs(["Chart", "Amortization"])
 
-    st.subheader("Amortization Comparison")
-    if not amortization_data:
-        st.info("Amortization data will appear after running the calculator.")
-        return
+    with chart_tab:
+        st.subheader("Cumulative Savings")
+        render_cumulative_chart(analysis)
+        st.subheader("Loan Balance Comparison")
+        render_balance_comparison_chart(amortization_data)
 
-    amort_df = pd.DataFrame(amortization_data)
-    st.dataframe(
-        amort_df.style.format(
-            {
-                "current_principal": "${:,.0f}",
-                "current_interest": "${:,.0f}",
-                "current_balance": "${:,.0f}",
-                "new_principal": "${:,.0f}",
-                "new_interest": "${:,.0f}",
-                "new_balance": "${:,.0f}",
-                "principal_diff": "${:,.0f}",
-                "interest_diff": "${:,.0f}",
-                "balance_diff": "${:,.0f}",
+    with amort_tab:
+        st.subheader("Amortization Comparison")
+        if not amortization_data:
+            st.info("Amortization data will appear after running the calculator.")
+            return
+
+        amort_df = pd.DataFrame(amortization_data)
+        display_df = amort_df.rename(
+            columns={
+                "year": "Year",
+                "current_principal": "Current Principal",
+                "current_interest": "Current Interest",
+                "current_balance": "Current Balance",
+                "new_principal": "New Principal",
+                "new_interest": "New Interest",
+                "new_balance": "New Balance",
+                "principal_diff": "Principal Δ",
+                "interest_diff": "Interest Δ",
+                "balance_diff": "Balance Δ",
             },
-        ),
-        width="stretch",
-    )
+        )
+        formatters = {
+            "Current Principal": "${:,.0f}",
+            "Current Interest": "${:,.0f}",
+            "Current Balance": "${:,.0f}",
+            "New Principal": "${:,.0f}",
+            "New Interest": "${:,.0f}",
+            "New Balance": "${:,.0f}",
+            "Principal Δ": "${:+,.0f}",
+            "Interest Δ": "${:+,.0f}",
+            "Balance Δ": "${:+,.0f}",
+        }
+
+        styled = (
+            display_df.style.format(formatters)
+            .hide(axis="index")
+            .applymap(_interest_delta_style, subset=["Interest Δ"])
+        )
+        st.dataframe(styled, width="stretch")
 
 
 def render_options_tab(inputs: CalculatorInputs) -> None:
-    """Show the active parameters that influenced the calculations.
+    """Render controls that affect chart and sensitivity behavior.
 
     Args:
-        inputs: Inputs from the calculator tab.
+        inputs: Inputs used to drive the scenario.
     """
+    st.subheader("Application Options")
+    st.number_input(
+        "Chart Horizon (years)",
+        min_value=1,
+        max_value=30,
+        step=1,
+        value=int(st.session_state["chart_horizon_years"]),
+        key="chart_horizon_years",
+    )
+    st.number_input(
+        "Max Rate Reduction (%)",
+        min_value=0.0,
+        max_value=5.0,
+        step=0.1,
+        value=float(st.session_state["sensitivity_max_reduction"]),
+        key="sensitivity_max_reduction",
+    )
+    st.number_input(
+        "Rate Step (%)",
+        min_value=0.01,
+        max_value=1.0,
+        step=0.01,
+        value=float(st.session_state["sensitivity_step"]),
+        key="sensitivity_step",
+    )
+    st.caption(
+        "Adjust settings here to explore chart horizons and sensitivity detail; changes "
+        "take effect on the next calculation.",
+    )
+
+    st.divider()
+
     st.subheader("Active Parameters")
     cols = st.columns(3)
     cols[0].metric("Opportunity Rate", f"{inputs.opportunity_rate:.2f}%")
     cols[1].metric("Marginal Tax Rate", f"{inputs.marginal_tax_rate:.2f}%")
     cols[2].metric("NPV Window", f"{inputs.npv_window_years} years")
-    cols = st.columns(3)
-    cols[0].metric("Chart Horizon", f"{inputs.chart_horizon_years} years")
-    cols[1].metric(
-        "Sensitivity Max Reduction",
-        f"{inputs.sensitivity_max_reduction:.2f}%",
-    )
-    cols[2].metric("Sensitivity Step", f"{inputs.sensitivity_step:.3f}%")
-    st.caption("Use the calculator tab to change these values and rerun the analysis.")
 
 
 logger.debug("Results rendering module initialized.")
@@ -309,7 +432,7 @@ logger.debug("Results rendering module initialized.")
 __all__ = [
     "render_results",
     "render_analysis_tab",
-    "render_visuals_tab",
+    "render_loan_visualizations_tab",
     "render_options_tab",
     "render_cumulative_chart",
     "build_sensitivity_display",

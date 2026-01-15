@@ -31,6 +31,18 @@ DEFAULT_CHART_HORIZON_YEARS = 10
 DEFAULT_SENSITIVITY_MAX_REDUCTION = 2.5
 DEFAULT_SENSITIVITY_STEP = 0.125
 
+OPTION_STATE_DEFAULTS: dict[str, float] = {
+    "chart_horizon_years": DEFAULT_CHART_HORIZON_YEARS,
+    "sensitivity_max_reduction": DEFAULT_SENSITIVITY_MAX_REDUCTION,
+    "sensitivity_step": DEFAULT_SENSITIVITY_STEP,
+}
+ADVANCED_STATE_DEFAULTS: dict[str, float | bool] = {
+    "opportunity_rate": DEFAULT_OPPORTUNITY_RATE,
+    "marginal_tax_rate": DEFAULT_MARGINAL_TAX_RATE,
+    "npv_window_years": DEFAULT_NPV_WINDOW_YEARS,
+    "maintain_payment": False,
+}
+
 HOLDING_PERIODS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
 
 
@@ -126,60 +138,43 @@ def collect_inputs() -> CalculatorInputs:
             step=500.0,
         )
 
-    maintain_payment = st.checkbox(
-        "Maintain current payment (extra → principal)",
-        value=False,
-    )
-
     with st.expander("Advanced options", expanded=False):
         opportunity_rate = st.number_input(
             "Opportunity Rate (%)",
             min_value=0.0,
             max_value=100.0,
-            value=DEFAULT_OPPORTUNITY_RATE,
+            value=st.session_state["opportunity_rate"],
             step=0.1,
+            key="opportunity_rate",
         )
         marginal_tax_rate = st.number_input(
             "Marginal Tax Rate (%)",
             min_value=0.0,
             max_value=100.0,
-            value=DEFAULT_MARGINAL_TAX_RATE,
+            value=st.session_state["marginal_tax_rate"],
             step=0.1,
+            key="marginal_tax_rate",
         )
         npv_window_years = int(
             st.number_input(
                 "NPV Window (years)",
                 min_value=1,
                 max_value=30,
-                value=DEFAULT_NPV_WINDOW_YEARS,
+                value=st.session_state["npv_window_years"],
                 step=1,
+                key="npv_window_years",
             ),
         )
-        chart_horizon_years = int(
-            st.number_input(
-                "Chart Horizon (years)",
-                min_value=1,
-                max_value=30,
-                value=DEFAULT_CHART_HORIZON_YEARS,
-                step=1,
-            ),
+        maintain_payment = st.checkbox(
+            "Maintain current payment (extra → principal)",
+            value=st.session_state["maintain_payment"],
+            key="maintain_payment",
         )
-        sensitivity_max_reduction = st.number_input(
-            "Max Rate Reduction (%)",
-            min_value=0.0,
-            max_value=5.0,
-            value=DEFAULT_SENSITIVITY_MAX_REDUCTION,
-            step=0.1,
-        )
-        sensitivity_step = st.number_input(
-            "Rate Step (%)",
-            min_value=0.01,
-            max_value=1.0,
-            value=DEFAULT_SENSITIVITY_STEP,
-            step=0.01,
-        )
-
         st.caption("Opportunity cost and tax rate feed into the NPV and savings dashboard.")
+
+    chart_horizon_years = int(st.session_state["chart_horizon_years"])
+    sensitivity_max_reduction = float(st.session_state["sensitivity_max_reduction"])
+    sensitivity_step = float(st.session_state["sensitivity_step"])
 
     return CalculatorInputs(
         current_balance=current_balance,
@@ -251,6 +246,14 @@ def _build_rate_steps(
             rate_steps.append(new_rate_pct / 100)
         reduction += step
     return rate_steps
+
+
+def ensure_option_state() -> None:
+    """Restore default option values in Streamlit session state."""
+    for key, default in OPTION_STATE_DEFAULTS.items():
+        st.session_state.setdefault(key, default)
+    for key, default in ADVANCED_STATE_DEFAULTS.items():
+        st.session_state.setdefault(key, default)
 
 
 def prepare_auxiliary_data(
