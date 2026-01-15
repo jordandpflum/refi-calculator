@@ -30,6 +30,22 @@ except ImportError:
     _src_path = Path(__file__).resolve().parent.parent.parent
     if str(_src_path) not in sys.path:
         sys.path.insert(0, str(_src_path))
+    from refi_calculator.core.models import RefinanceAnalysis
+    from refi_calculator.web.calculator import (
+        CalculatorInputs,
+        collect_inputs,
+        ensure_option_state,
+        prepare_auxiliary_data,
+        run_analysis,
+    )
+    from refi_calculator.web.info import render_info_tab
+    from refi_calculator.web.market import render_market_tab
+    from refi_calculator.web.results import (
+        render_analysis_tab,
+        render_loan_visualizations_tab,
+        render_options_tab,
+        render_results,
+    )
 
 
 logger = getLogger(__name__)
