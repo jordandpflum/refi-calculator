@@ -9,8 +9,8 @@ import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
 
+from refi_calculator.core.market.constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 from refi_calculator.core.market.fred import fetch_fred_series
-from refi_calculator.gui.market_constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 
 logger = getLogger(__name__)
 
