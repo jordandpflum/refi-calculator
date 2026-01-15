@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+import altair as alt
 import pandas as pd
 import streamlit as st
 
@@ -13,7 +14,9 @@ from refi_calculator.core.calculations import (
     run_holding_period_analysis,
     run_sensitivity,
 )
+from refi_calculator.core.market.fred import fetch_fred_series
 from refi_calculator.core.models import RefinanceAnalysis
+from refi_calculator.gui.market_constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 
 DEFAULT_CURRENT_BALANCE = 400_000.0
 DEFAULT_CURRENT_RATE = 6.5
@@ -30,6 +33,31 @@ DEFAULT_SENSITIVITY_MAX_REDUCTION = 2.5
 DEFAULT_SENSITIVITY_STEP = 0.125
 
 HOLDING_PERIODS = [1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 20]
+
+MARKET_CACHE_TTL_SECONDS = 15 * 60
+MARKET_AXIS_YEAR_THRESHOLD_MONTHS = 24
+
+
+def _get_fred_api_key() -> str | None:
+    """Retrieve the FRED API key from Streamlit secrets, if set."""
+    return st.secrets.get("FRED_API_KEY")
+
+
+@st.cache_data(ttl=MARKET_CACHE_TTL_SECONDS)
+def _fetch_market_series(
+    series_id: str,
+    api_key: str,
+) -> list[tuple[str, float]]:
+    """Fetch a series from FRED using cached data to minimize API calls.
+
+    Args:
+        series_id: FRED series identifier.
+        api_key: FRED API key.
+
+    Returns:
+        List of (date, value) tuples for the requested series.
+    """
+    return fetch_fred_series(series_id, api_key)
 
 
 @dataclass
@@ -499,7 +527,15 @@ def _build_sensitivity_display(
     data: list[dict],
     npv_years: int,
 ) -> pd.DataFrame:
-    """Produce a display frame for rate sensitivity results."""
+    """Produce a display frame for rate sensitivity results.
+
+    Args:
+        data: Raw sensitivity scenario data.
+        npv_years: Number of years used for NPV calculations.
+
+    Returns:
+        DataFrame formatted for display.
+    """
     if not data:
         return pd.DataFrame()
 
@@ -516,7 +552,14 @@ def _build_sensitivity_display(
 
 
 def _build_holding_display(data: list[dict]) -> pd.DataFrame:
-    """Create a display-friendly frame for holding period analysis."""
+    """Create a display-friendly frame for holding period analysis.
+
+    Args:
+        data: Raw holding period scenario data.
+
+    Returns:
+        DataFrame formatted for display.
+    """
     if not data:
         return pd.DataFrame()
 
@@ -537,7 +580,13 @@ def _render_analysis_tab(
     sensitivity_data: list[dict],
     holding_period_data: list[dict],
 ) -> None:
-    """Render the Rate Sensitivity and Holding Period tabs."""
+    """Render the Rate Sensitivity and Holding Period tabs.
+
+    Args:
+        inputs: Inputs used to drive the scenario.
+        sensitivity_data: Precomputed sensitivity analysis data.
+        holding_period_data: Precomputed holding period analysis data.
+    """
     st.subheader("Analysis Tables")
     rate_tab, holding_tab = st.tabs(["Rate Sensitivity", "Holding Period"])
 
@@ -560,7 +609,12 @@ def _render_visuals_tab(
     analysis: RefinanceAnalysis,
     amortization_data: list[dict],
 ) -> None:
-    """Render the visuals tab content."""
+    """Render the visuals tab content.
+
+    Args:
+        analysis: Analysis output that contains the savings timeline.
+        amortization_data: Precomputed amortization comparison data.
+    """
     st.subheader("Cumulative Savings")
     _render_cumulative_chart(analysis)
 
@@ -588,13 +642,196 @@ def _render_visuals_tab(
     )
 
 
-def _render_market_tab() -> None:
-    """Render a placeholder for market data insights."""
-    st.subheader("Market Data")
-    st.info(
-        "Historical mortgage data is available when a FRED API key is configured via "
-        "the system environment. Connect your key to unlock the rate series viewer.",
+def _market_months_for_option(
+    value: str,
+) -> int | None:
+    """Translate a period option value into a number of months.
+
+    Args:
+        value: Option value string.
+
+    Returns:
+        Number of months or None for all available data.
+    """
+    if value == "0":
+        return None
+    return int(value)
+
+
+def _build_market_dataframe(
+    raw_series: dict[str, list[tuple[str, float]]],
+) -> pd.DataFrame:
+    """Combine multiple FRED series into a single time-indexed frame.
+
+    Args:
+        raw_series: Mapping of series labels to raw (date, value) observations.
+
+    Returns:
+        DataFrame with a DateTime index and one column per series.
+    """
+    frames: list[pd.DataFrame] = []
+    for label, observations in raw_series.items():
+        if not observations:
+            continue
+        df = pd.DataFrame(observations, columns=["Date", label])
+        df["Date"] = pd.to_datetime(df["Date"])
+        df.set_index("Date", inplace=True)
+        frames.append(df)
+
+    if not frames:
+        return pd.DataFrame()
+
+    return pd.concat(frames, axis=1).sort_index()
+
+
+def _render_market_chart(data: pd.DataFrame) -> None:
+    """Render the market series with controlled Y-axis domain.
+
+    Args:
+        data: DataFrame with Date index and one column per series.
+    """
+    if data.empty:
+        return
+
+    melted = data.reset_index().melt("Date", var_name="Series", value_name="Rate")
+
+    min_rate = melted["Rate"].min()
+    max_rate = melted["Rate"].max()
+    span = max_rate - min_rate
+    padding = max(span * 0.05, 0.25)
+    lower = max(min_rate - padding, 0)
+    upper = max_rate + padding
+
+    date_span = data.index.max() - data.index.min()
+    months = date_span.days / 30
+    use_year_only = months >= MARKET_AXIS_YEAR_THRESHOLD_MONTHS
+    date_format = "%Y" if use_year_only else "%b %Y"
+
+    axis_kwargs: dict[str, object] = {
+        "format": date_format,
+        "labelAngle": -45,
+        "labelFlush": True,
+    }
+    if use_year_only:
+        start_year = data.index.min().year
+        end_year = data.index.max().year
+        axis_kwargs["values"] = [
+            pd.Timestamp(year=y, month=1, day=1) for y in range(start_year, end_year + 1)
+        ]
+    else:
+        axis_kwargs["tickCount"] = "month"
+
+    chart = (
+        alt.Chart(melted)
+        .mark_line()
+        .encode(
+            x=alt.X("Date:T", title="Date", axis=alt.Axis(**axis_kwargs)),
+            y=alt.Y(
+                "Rate:Q",
+                title="Rate (%)",
+                scale=alt.Scale(domain=[lower, upper]),
+            ),
+            color=alt.Color("Series:N", legend=alt.Legend(title="Series")),
+            tooltip=[
+                alt.Tooltip("Date:T", title="Date"),
+                alt.Tooltip("Series:N", title="Series"),
+                alt.Tooltip("Rate:Q", title="Rate (%)", format=".2f"),
+            ],
+        )
+        .interactive()
     )
+
+    st.altair_chart(chart, use_container_width=True)
+
+
+def _filter_market_df_by_months(
+    data: pd.DataFrame,
+    months: int | None,
+) -> pd.DataFrame:
+    """Return a view of the series restricted to the most recent `months`.
+
+    Args:
+        data: DataFrame with Date index and one column per series.
+        months: Number of months to retain or None for all data.
+
+    Returns:
+        Filtered DataFrame.
+    """
+    if months is None or data.empty:
+        return data
+
+    last_date = data.index.max()
+    cutoff = last_date - pd.DateOffset(months=months)
+    return data.loc[data.index >= cutoff]
+
+
+def _render_market_tab() -> None:
+    """Render the market-rate tab with charts and tables."""
+    st.subheader("Market Data")
+
+    api_key = _get_fred_api_key()
+    if not api_key:
+        st.warning(
+            "Add your FRED API key to `st.secrets['FRED_API_KEY']` to view mortgage rate history.",
+        )
+        return
+
+    options = [label for label, _ in MARKET_PERIOD_OPTIONS]
+    option_mapping = {label: value for label, value in MARKET_PERIOD_OPTIONS}
+    period_label = st.radio("Range", options, horizontal=True, key="market_range")
+    period_months = _market_months_for_option(option_mapping[period_label])
+
+    raw_series: dict[str, list[tuple[str, float]]] = {}
+    errors: list[str] = []
+    for label, series_id in MARKET_SERIES:
+        try:
+            observations = _fetch_market_series(series_id, api_key)
+        except RuntimeError as exc:
+            errors.append(f"{label}: {exc}")
+            observations = []
+        raw_series[label] = observations
+
+    if errors:
+        for err in errors:
+            st.error(err)
+
+    market_df_all = _build_market_dataframe(raw_series)
+    if market_df_all.empty:
+        st.info("Market data is not available for the selected range.")
+        return
+
+    latest_valid = market_df_all.dropna(how="all")
+    if latest_valid.empty:
+        st.info("Market data lacks recent observations.")
+        return
+
+    latest = latest_valid.iloc[-1].dropna()
+    latest_date = latest_valid.index.max().date()
+    st.markdown(f"**Current Rates (latest available as of {latest_date:%Y-%m-%d})**")
+    if not latest.empty:
+        metric_cols = st.columns(len(latest))
+        for col, (label, value) in zip(metric_cols, latest.items()):
+            col.metric(label, f"{value:.2f}%")
+
+    options = [label for label, _ in MARKET_PERIOD_OPTIONS]
+    option_mapping = {label: value for label, value in MARKET_PERIOD_OPTIONS}
+    period_label = st.radio("Range", options, horizontal=True)
+    period_months = _market_months_for_option(option_mapping[period_label])
+
+    market_df = _filter_market_df_by_months(market_df_all, period_months)
+    if market_df.empty:
+        st.info("Filtered market data is not available for the selected range.")
+        return
+
+    cache_minutes = MARKET_CACHE_TTL_SECONDS // 60
+    st.caption(
+        f"Cached for {cache_minutes} minutes; reload the app to refresh data.",
+    )
+    _render_market_chart(market_df)
+
+    table = market_df.sort_index(ascending=False).head(12).reset_index()
+    table["Date"] = table["Date"].dt.date
+    st.dataframe(table, use_container_width=True)
 
 
 def _render_options_tab(inputs: CalculatorInputs) -> None:
