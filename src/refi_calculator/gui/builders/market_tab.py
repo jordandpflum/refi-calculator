@@ -6,8 +6,8 @@ import tkinter as tk
 from tkinter import ttk
 from typing import TYPE_CHECKING
 
+from ...core.market.constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 from ..market_chart import MarketChart
-from ..market_constants import MARKET_PERIOD_OPTIONS, MARKET_SERIES
 
 if TYPE_CHECKING:
     from ..app import RefinanceCalculatorApp
