@@ -23,9 +23,9 @@ class SavingsChart(tk.Canvas):
 
     def __init__(
         self,
-        parent,
-        width=400,
-        height=200,
+        parent: tk.Frame,
+        width: int = 400,
+        height: int = 200,
     ):
         """Initialize SavingsChart.
 
@@ -295,9 +295,9 @@ class AmortizationChart(tk.Canvas):
 
     def __init__(
         self,
-        parent,
-        width=400,
-        height=220,
+        parent: tk.Frame,
+        width: int = 400,
+        height: int = 220,
     ):
         """Initialize AmortizationChart.
 
