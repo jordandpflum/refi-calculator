@@ -1,4 +1,3 @@
--e .
 altair==6.0.0 ; python_version == "3.13"
 attrs==25.4.0 ; python_version == "3.13"
 blinker==1.9.0 ; python_version == "3.13"
