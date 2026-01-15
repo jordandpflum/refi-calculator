@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from logging import getLogger
 
-import altair as alt
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 from refi_calculator.core.models import RefinanceAnalysis
@@ -184,32 +184,44 @@ def render_balance_comparison_chart(amortization_data: list[dict]) -> None:
         },
     )
     df["Year"] = df["Year"].astype(int)
-    melted = df.melt("Year", var_name="Loan", value_name="Balance")
 
-    chart = (
-        alt.Chart(melted)
-        .mark_line()
-        .encode(
-            x=alt.X("Year:Q", title="Year", axis=alt.Axis(format="d")),
-            y=alt.Y("Balance:Q", title="Loan Balance ($)"),
-            color=alt.Color(
-                "Loan:N",
-                legend=alt.Legend(title="Loan"),
-                scale=alt.Scale(
-                    domain=["Current Balance", "New Balance"],
-                    range=["#ef4444", "#16a34a"],
-                ),
+    colors = {
+        "Current Balance": "#ef4444",
+        "New Balance": "#16a34a",
+    }
+    fig = go.Figure()
+    for loan in ["Current Balance", "New Balance"]:
+        fig.add_trace(
+            go.Scatter(
+                x=df["Year"],
+                y=df[loan],
+                mode="lines",
+                name=loan,
+                line=dict(color=colors[loan], width=3),
+                hovertemplate="Year=%{x}<br>Loan=%{text}<br>Balance=$%{y:,.0f}<extra></extra>",
+                text=[loan] * len(df),
             ),
-            tooltip=[
-                alt.Tooltip("Year:Q", title="Year"),
-                alt.Tooltip("Loan:N", title="Loan"),
-                alt.Tooltip("Balance:Q", title="Balance", format=",.0f"),
-            ],
         )
-        .interactive()
+
+    fig.update_layout(
+        xaxis=dict(
+            title="Year",
+            tickmode="linear",
+            dtick=1,
+            tickformat="d",
+            showgrid=False,
+        ),
+        yaxis=dict(
+            title="Loan Balance ($)",
+            tickprefix="$",
+            tickformat=",",
+        ),
+        legend=dict(title="Loan"),
+        margin=dict(t=5, b=30, l=60, r=10),
+        hovermode="x",
     )
 
-    st.altair_chart(chart, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def _interest_delta_style(value: str | float) -> str:

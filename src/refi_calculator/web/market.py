@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from logging import getLogger
 
-import altair as alt
 import pandas as pd
+import plotly.graph_objects as go
 import streamlit as st
 
 from refi_calculator.core.market.fred import fetch_fred_series
@@ -141,41 +141,50 @@ def _render_market_chart(data: pd.DataFrame) -> None:
     use_year_only = months >= MARKET_AXIS_YEAR_THRESHOLD_MONTHS
     date_format = "%Y" if use_year_only else "%b %Y"
 
-    axis_kwargs: dict[str, object] = {
-        "format": date_format,
-        "labelAngle": 0 if use_year_only else -45,
-        "labelFlush": True,
+    fig = go.Figure()
+    for label, group in melted.groupby("Series"):
+        fig.add_trace(
+            go.Scatter(
+                x=group["Date"],
+                y=group["Rate"],
+                mode="lines",
+                name=label,
+                hovertemplate="Date=%{x|%b %Y}<br>Series=%{text}<br>Rate=%{y:.2f}%<extra></extra>",
+                text=[label] * len(group),
+            ),
+        )
+
+    xaxis_kwargs: dict[str, object] = {
+        "title": "Date",
+        "tickformat": date_format,
+        "tickangle": 0 if use_year_only else -45,
     }
     if use_year_only:
         start_year = data.index.min().year
         end_year = data.index.max().year
-        axis_kwargs["values"] = [
-            pd.Timestamp(year=y, month=1, day=1) for y in range(start_year, end_year + 1)
-        ]
-    else:
-        axis_kwargs["tickCount"] = "month"
-
-    chart = (
-        alt.Chart(melted)
-        .mark_line()
-        .encode(
-            x=alt.X("Date:T", title="Date", axis=alt.Axis(**axis_kwargs)),
-            y=alt.Y(
-                "Rate:Q",
-                title="Rate (%)",
-                scale=alt.Scale(domain=[lower, upper]),
-            ),
-            color=alt.Color("Series:N", legend=alt.Legend(title="Series")),
-            tooltip=[
-                alt.Tooltip("Date:T", title="Date"),
-                alt.Tooltip("Series:N", title="Series"),
-                alt.Tooltip("Rate:Q", title="Rate (%)", format=".2f"),
-            ],
+        xaxis_kwargs.update(
+            {
+                "tickmode": "array",
+                "tickvals": [
+                    pd.Timestamp(year=y, month=1, day=1) for y in range(start_year, end_year + 1)
+                ],
+            },
         )
-        .interactive()
+    else:
+        xaxis_kwargs["tickmode"] = "auto"
+
+    fig.update_layout(
+        xaxis=xaxis_kwargs,
+        yaxis=dict(
+            title="Rate (%)",
+            range=[lower, upper],
+        ),
+        legend=dict(title="Series"),
+        margin=dict(t=5, b=30, l=50, r=10),
+        hovermode="x",
     )
 
-    st.altair_chart(chart, width="stretch")
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def render_market_tab() -> None:
