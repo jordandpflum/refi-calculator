@@ -1,9 +1,12 @@
+---
 name: Build Executables
-on:
+
+"on":
   release:
     types:
       - published
   workflow_dispatch: # manual trigger for testing
+
 jobs:
   build:
     runs-on: windows-latest
@@ -44,16 +47,42 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name refi-calculator src/refi_calculator/cli.py
 
+      - name: Verify executable exists
+        run: |
+          if (!(Test-Path "dist/refi-calculator.exe")) {
+            Write-Error "Executable was not created!"
+            exit 1
+          }
+          Write-Output "Executable size: $((Get-Item dist/refi-calculator.exe).Length / 1MB) MB"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: refi-calculator-windows
           path: dist/refi-calculator.exe
 
+      - name: Build Summary
+        if: always()
+        shell: pwsh
+        run: |
+          echo "## Build Executables Summary" >> $env:GITHUB_STEP_SUMMARY
+          echo "" >> $env:GITHUB_STEP_SUMMARY
+          if (Test-Path "dist/refi-calculator.exe") {
+            $size = (Get-Item dist/refi-calculator.exe).Length / 1MB
+            echo "✅ **Windows Executable Built Successfully**" >> $env:GITHUB_STEP_SUMMARY
+            echo "- **Platform:** Windows x64" >> $env:GITHUB_STEP_SUMMARY
+            echo "- **File:** refi-calculator.exe" >> $env:GITHUB_STEP_SUMMARY
+            echo "- **Size:** $($size.ToString('F2')) MB" >> $env:GITHUB_STEP_SUMMARY
+            echo "- **Python Version:** 3.13" >> $env:GITHUB_STEP_SUMMARY
+          } else {
+            echo "❌ **Build Failed**" >> $env:GITHUB_STEP_SUMMARY
+            echo "- Executable was not created" >> $env:GITHUB_STEP_SUMMARY
+          }
+
   upload-to-release:
     needs: build
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'release'
     permissions:
       contents: write
     steps:
@@ -66,3 +95,14 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: artifacts/refi-calculator-windows/refi-calculator.exe
+          token: ${{ secrets.PAT }}
+
+      - name: Upload Summary
+        if: always()
+        run: |
+          echo "## Release Upload Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Executable Attached to Release**" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release:** ${{ github.event.release.tag_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Release URL:** ${{ github.event.release.html_url }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **File:** refi-calculator.exe (Windows)" >> $GITHUB_STEP_SUMMARY

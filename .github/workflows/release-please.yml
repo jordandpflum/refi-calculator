@@ -1,0 +1,50 @@
+---
+name: Release Please
+
+"on":
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          release-type: python
+          package-name: refi-calculator
+
+      - name: Release Summary
+        if: always()
+        run: |
+          tag="${{ steps.release.outputs.tag_name }}"
+          version_major="${{ steps.release.outputs.major }}"
+          version_minor="${{ steps.release.outputs.minor }}"
+          version_patch="${{ steps.release.outputs.patch }}"
+          version="${version_major}.${version_minor}.${version_patch}"
+          release_url="https://github.com/${{ github.repository }}/releases/tag/${tag}"
+          pr_number="${{ steps.release.outputs.pr }}"
+          pr_url="https://github.com/${{ github.repository }}/pull/${pr_number}"
+          echo "## Release Please Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.release.outputs.release_created }}" == "true" ]; then
+            echo "✅ **Release Created!**" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tag:** ${tag}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Version:** ${version}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Release URL:** ${release_url}" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ steps.release.outputs.pr }}" != "" ]; then
+            echo "📝 **Release PR Updated**" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR #:** ${pr_number}" >> $GITHUB_STEP_SUMMARY
+            echo "- **PR URL:** ${pr_url}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> Merge this PR when ready to release" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ **No Release Activity**" >> $GITHUB_STEP_SUMMARY
+            echo "- No conventional commits found since last release" >> $GITHUB_STEP_SUMMARY
+          fi

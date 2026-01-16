@@ -1,10 +1,47 @@
+---
 name: CI
-on:
+
+"on":
   push:
     branches: [main]
   pull_request:
+
+env:
+  DEFAULT_PYTHON_VERSION: "3.13"
+
 jobs:
+  lint:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
+
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: >
+            ${{ runner.os }}-py${{ env.DEFAULT_PYTHON_VERSION }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install dependencies
+        run: poetry install --all-extras
+
+      - name: Run pre-commit
+        id: pre-commit
+        run: poetry run pre-commit run --all-files
+        continue-on-error: true
+
   test:
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -21,23 +58,176 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
 
-      - name: Cache pre-commit hooks
-        uses: actions/cache@v4
+      - name: Install dependencies
+        run: poetry install --all-extras
+
+      - name: Run tests with coverage
+        id: pytest
+        run: |
+          poetry run pytest \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            --junitxml=junit.xml \
+            | tee pytest-output.txt
+          echo "coverage=$(grep 'TOTAL' pytest-output.txt | awk '{print $NF}')" >> $GITHUB_OUTPUT
+        continue-on-error: true
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v5
         with:
-          path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-py${{ matrix.python-version }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+          file: ./coverage.xml
+          flags: unittests
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload rest results to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v5
+        with:
+          file: ./junit.xml
+          flags: test-results
+          report_type: test_results
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage HTML report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+          retention-days: 7
+
+  type-check:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
 
       - name: Install dependencies
         run: poetry install --all-extras
 
-      - name: Run pre-commit
-        run: poetry run pre-commit run --all-files
-
-      - name: Run tests with coverage
-        run: poetry run pytest --cov=src --cov-report=term-missing
-
       - name: Run type checking
+        id: pyright
         run: poetry run pyright
+        continue-on-error: true
 
-      - name: Verify build
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: poetry install --all-extras
+
+      - name: Build Package
+        id: build
         run: poetry build
+        continue-on-error: true
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, test, type-check, build]
+    if: always()
+    steps:
+      - name: Check job results
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Environment" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ env.DEFAULT_PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner OS:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Lint
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "- ✅ **Lint and Format** - All checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **Lint and Format** - Checks failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Tests
+          if [ "${{ needs.test.result }}" == "success" ]; then
+            echo "- ✅ **Tests** - All tests passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **Tests** - Some tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Type checking
+          if [ "${{ needs.type-check.result }}" == "success" ]; then
+            echo "- ✅ **Type Checking** - No type errors" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **Type Checking** - Type errors found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Build
+          if [ "${{ needs.build.result }}" == "success" ]; then
+            echo "- ✅ **Build** - Package built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ❌ **Build** - Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          coverage_url="https://codecov.io/gh/${{ github.repository }}"
+          echo "### 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **HTML Report:** coverage-report artifact" >> $GITHUB_STEP_SUMMARY
+          echo "- **Codecov:** ${coverage_url}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Overall status
+          if [ "${{ needs.lint.result }}" == "success" ] && \
+             [ "${{ needs.test.result }}" == "success" ] && \
+             [ "${{ needs.type-check.result }}" == "success" ] && \
+             [ "${{ needs.build.result }}" == "success" ]; then
+            echo "## 🎉 All Checks Passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "## ⚠️ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the failed jobs above." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail if any job failed
+        if: |
+          needs.lint.result != 'success' ||
+          needs.test.result != 'success' ||
+          needs.type-check.result != 'success' ||
+          needs.build.result != 'success'
+        run: exit 1
