@@ -43,6 +43,7 @@ jobs:
             --cov-report=term-missing \
             --cov-report=xml \
             --cov-report=html \
+            --junitxml=junit.xml \
             | tee pytest-output.txt
           echo "coverage=$(grep 'TOTAL' pytest-output.txt | awk '{print $NF}')" >> $GITHUB_OUTPUT
         continue-on-error: true
@@ -53,6 +54,14 @@ jobs:
         with:
           file: ./coverage.xml
           flags: unittests
+          fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload rest results to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/test-results-action@v1
+        with:
+          file: ./junit.xml
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
