@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.9.0](https://github.com/jordandpflum/refi-calculator/compare/v0.8.0...v0.9.0) (2026-01-16)
+
+
+### Features
+
+* **ci:** add automated release workflow ([#29](https://github.com/jordandpflum/refi-calculator/issues/29)) ([c503d7b](https://github.com/jordandpflum/refi-calculator/commit/c503d7b034e65dcc06eea8c99400cb518656e6fe))
+
+
+### Bug Fixes
+
+* **ci:** Fix release pipeline V3 ([#33](https://github.com/jordandpflum/refi-calculator/issues/33)) ([11d21a4](https://github.com/jordandpflum/refi-calculator/commit/11d21a485942666c93e9f112b63f36a7c7cfa909))
+* **ci:** remove deprecated input ([#35](https://github.com/jordandpflum/refi-calculator/issues/35)) ([cbf9b47](https://github.com/jordandpflum/refi-calculator/commit/cbf9b47ec016424ae55e35b9a79fc0bb621ee9f2))
+* **ci:** Remove release summary ([#34](https://github.com/jordandpflum/refi-calculator/issues/34)) ([b3e8bfc](https://github.com/jordandpflum/refi-calculator/commit/b3e8bfc5c2d735f27df356460e2a93254260d160))
+* Fix failing release pipeline ([#31](https://github.com/jordandpflum/refi-calculator/issues/31)) ([2a32681](https://github.com/jordandpflum/refi-calculator/commit/2a326814c970782f2fd15f76edae29731ff29aa0))
+* fix release pipeline summary step V2 ([#32](https://github.com/jordandpflum/refi-calculator/issues/32)) ([6aa6ca6](https://github.com/jordandpflum/refi-calculator/commit/6aa6ca60552a4ce40bfbc0d4744cc0e487f112a0))
+
+
+### Documentation
+
+* **readme:** remove duplicate test badge from README ([#36](https://github.com/jordandpflum/refi-calculator/issues/36)) ([cc5a976](https://github.com/jordandpflum/refi-calculator/commit/cc5a976d402a8a1bbfa7e053311c7bb0ad93af18))
+
 ## [0.8.0]
 
 - Added a MkDocs-powered documentation site. Generated API reference, guide,
