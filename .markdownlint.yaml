@@ -1,11 +1,18 @@
 ---
 # default to true for all rules
 default: true
+
 # MD007/unordered-list-indent
 MD007:
-  indent: 4
+  indent: 2
+
+# Line Length
 MD013:
-  line_length: 100
-  heading_line_length: 100
+  line_length: 120
+  heading_line_length: 120
   code_blocks: false
   tables: false
+
+# MD024 Multiple headings with same content
+MD024:
+  siblings_only: true
