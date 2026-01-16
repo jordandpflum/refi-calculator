@@ -22,20 +22,28 @@ jobs:
 
       - name: Release Summary
         if: always()
+        env:
+          TAG_NAME: ${{ steps.release.outputs.tag_name }}
+          VERSION_MAJOR: ${{ steps.release.outputs.major }}
+          VERSION_MINOR: ${{ steps.release.outputs.minor }}
+          VERSION_PATCH: ${{ steps.release.outputs.patch }}
+          RELEASE_CREATED: ${{ steps.release.outputs.release_created }}
+          PR_NUMBER: ${{ steps.release.outputs.pr }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
-          tag="${{ steps.release.outputs.tag_name }}"
-          version_major="${{ steps.release.outputs.major }}"
-          version_minor="${{ steps.release.outputs.minor }}"
-          version_patch="${{ steps.release.outputs.patch }}"
+          tag="${TAG_NAME}"
+          version_major="${VERSION_MAJOR}"
+          version_minor="${VERSION_MINOR}"
+          version_patch="${VERSION_PATCH}"
           version="${version_major}.${version_minor}.${version_patch}"
-          release_url="https://github.com/${{ github.repository }}/releases/tag/${tag}"
-          pr_number="${{ steps.release.outputs.pr }}"
-          pr_url="https://github.com/${{ github.repository }}/pull/${pr_number}"
+          release_url="https://github.com/${GITHUB_REPOSITORY}/releases/tag/${tag}"
+          pr_number="${PR_NUMBER}"
+          pr_url="https://github.com/${GITHUB_REPOSITORY}/pull/${pr_number}"
 
           echo "## Release Please Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ steps.release.outputs.release_created }}" == "true" ]; then
+          if [ "${RELEASE_CREATED}" = "true" ]; then
             echo "✅ **Release Created!**" >> $GITHUB_STEP_SUMMARY
             echo "- **Tag:** ${tag}" >> $GITHUB_STEP_SUMMARY
             echo "- **Version:** ${version}" >> $GITHUB_STEP_SUMMARY
