@@ -1,15 +1,12 @@
 ---
 name: Release Please
-
-"on":
+on:
   push:
     branches:
       - main
-
 permissions:
   contents: write
   pull-requests: write
-
 jobs:
   release-please:
     runs-on: ubuntu-latest
@@ -19,7 +16,6 @@ jobs:
         with:
           release-type: python
           package-name: refi-calculator
-
       - name: Release Summary
         if: always()
         run: |
@@ -31,8 +27,10 @@ jobs:
           release_url="https://github.com/${{ github.repository }}/releases/tag/${tag}"
           pr_number="${{ steps.release.outputs.pr }}"
           pr_url="https://github.com/${{ github.repository }}/pull/${pr_number}"
+
           echo "## Release Please Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           if [ "${{ steps.release.outputs.release_created }}" == "true" ]; then
             echo "✅ **Release Created!**" >> $GITHUB_STEP_SUMMARY
             echo "- **Tag:** ${tag}" >> $GITHUB_STEP_SUMMARY
