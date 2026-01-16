@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/jordandpflum/refi-calculator/compare/v0.9.0...v0.9.1) (2026-01-16)
+
+
+### Bug Fixes
+
+* **ci:** fix automated release process ([#37](https://github.com/jordandpflum/refi-calculator/issues/37)) ([f971e34](https://github.com/jordandpflum/refi-calculator/commit/f971e343f61acb27664dea1da1f4facb9f57f7f3))
+
 ## [0.9.0](https://github.com/jordandpflum/refi-calculator/compare/v0.8.0...v0.9.0) (2026-01-16)
 
 
