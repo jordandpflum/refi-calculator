@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: "poetry"
 
       - name: Cache pre-commit hooks
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: "${{ matrix.python-version }}"
+          python-version: ${{ matrix.python-version }}
           cache: "poetry"
 
       - name: Install dependencies
@@ -112,7 +112,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: "poetry"
 
       - name: Install dependencies
@@ -135,7 +135,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
           cache: "poetry"
 
       - name: Install dependencies
