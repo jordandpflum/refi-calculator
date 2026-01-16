@@ -60,18 +60,10 @@ pytest-cov = { version = "^7.0.0" }
 [tool.poetry.requires-plugins]
 poethepoet = { version = "~0.35.0", extras = ["poetry_plugin"] }
 poetry-plugin-export = { version = ">=1.8" }
-poetry-dynamic-versioning = { version = "^1.0.0,<2.0.0", extras = ["plugin"] }
-
-[tool.poetry-dynamic-versioning]
-enable = true
-style = "pep440"
-format-jinja = "{{ serialize_pep440(base, stage, revision) }}"
-metadata = false
-dirty = false
 
 [build-system]
-requires = ["poetry-core>=1.0.0", "poetry-dynamic-versioning>=1.0.0,<2.0.0"]
-build-backend = "poetry_dynamic_versioning.backend"
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
 
 [tool.coverage.run]
 branch = true
