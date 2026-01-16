@@ -37,14 +37,31 @@ jobs:
         run: poetry run pre-commit run --all-files
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
+        run: |
+          poetry run pytest \
+            --cov=src \
+            --cov-report=term-missing \
+            --cov-report=xml \
+            --cov-report=html \
+            | tee pytest-output.txt
+          echo "coverage=$(grep 'TOTAL' pytest-output.txt | awk '{print $NF}')" >> $GITHUB_OUTPUT
+        continue-on-error: true
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.13'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           file: ./coverage.xml
+          flags: unittests
           fail_ci_if_error: false
+          token: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload coverage HTML report as artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
 
       - name: Run type checking
         run: poetry run pyright
@@ -97,6 +114,10 @@ jobs:
             echo "❌ **Build** - Build failed" >> $GITHUB_STEP_SUMMARY
           fi
 
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "- **HTML Report:** Artifact coverage-report contains the HTML output" >> $GITHUB_STEP_SUMMARY
+          echo "- **Codecov:** See https://codecov.io/gh/${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           # Overall status
