@@ -78,7 +78,7 @@ jobs:
         if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
-          file: ./coverage.xml
+          files: ./coverage.xml
           flags: unittests
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
         if: matrix.python-version == '3.13'
         uses: codecov/codecov-action@v5
         with:
-          file: ./junit.xml
+          files: ./junit.xml
           flags: test-results
           report_type: test_results
           fail_ci_if_error: false
