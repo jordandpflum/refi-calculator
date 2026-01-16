@@ -1,7 +1,9 @@
 # Changelog
 
-- Planned for the upcoming v0.8.0 release by adding a MkDocs-powered documentation site.
-  Generated API reference, guide, and index pages keep the online docs and README badge accurate.
+## [0.8.0]
+
+- Added a MkDocs-powered documentation site. Generated API reference, guide,
+  and index pages keep the online docs and README badge accurate.
 - Added a `docs` workflow that installs dependencies via Poetry and publishes the MkDocs site.
   The workflow aligns with the hosted docs link used in the README.
   It also matches the Streamlit preview instructions.
