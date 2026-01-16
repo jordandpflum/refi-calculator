@@ -8,6 +8,7 @@
 ![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)
 [![Docs](https://img.shields.io/badge/docs-MkDocs-blue)](https://jordandpflum.github.io/refi-calculator/)
 [![codecov](https://codecov.io/gh/jordandpflum/refi-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/jordandpflum/refi-calculator)
+[![Tests](https://img.shields.io/codecov/test/github/jordandpflum/refi-calculator)](https://codecov.io/gh/jordandpflum/refi-calculator)
 
 Refi-Calculator helps borrowers analyze whether refinancing makes sense by comparing current and
 proposed loan terms through breakeven, NPV, amortization, and holding-period views inside a Tkinter
