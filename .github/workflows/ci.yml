@@ -166,7 +166,7 @@ jobs:
 
           echo "### Environment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Python Version:** ${{ eng.DEFAULT_PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ env.DEFAULT_PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Runner OS:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -174,31 +174,29 @@ jobs:
           echo "### Check Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          # Pre-commit
-          if [ "${{ steps.pre-commit.outcome }}" == "success" ]; then
-            echo "- ✅ **Pre-commit hooks** - All checks passed" >> $GITHUB_STEP_SUMMARY
+          # Lint
+          if [ "${{ needs.lint.result }}" == "success" ]; then
+            echo "- ✅ **Lint and Format** - All checks passed" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- ❌ **Pre-commit hooks** - Some checks failed" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ **Lint and Format** - Checks failed" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Tests
-          if [ "${{ steps.pytest.outcome }}" == "success" ]; then
+          if [ "${{ needs.test.result }}" == "success" ]; then
             echo "- ✅ **Tests** - All tests passed" >> $GITHUB_STEP_SUMMARY
-            if [ -n "${{ steps.pytest.outputs.coverage }}" ]; then
-            fi
           else
             echo "- ❌ **Tests** - Some tests failed" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Type checking
-          if [ "${{ steps.pyright.outcome }}" == "success" ]; then
-            echo "- ✅ **Type checking** - No type errors" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ needs.type-check.result }}" == "success" ]; then
+            echo "- ✅ **Type Checking** - No type errors" >> $GITHUB_STEP_SUMMARY
           else
-            echo "- ❌ **Type checking** - Type errors found" >> $GITHUB_STEP_SUMMARY
+            echo "- ❌ **Type Checking** - Type errors found" >> $GITHUB_STEP_SUMMARY
           fi
 
           # Build
-          if [ "${{ steps.build.outcome }}" == "success" ]; then
+          if [ "${{ needs.build.result }}" == "success" ]; then
             echo "- ✅ **Build** - Package built successfully" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ **Build** - Build failed" >> $GITHUB_STEP_SUMMARY
@@ -211,22 +209,23 @@ jobs:
           echo "- **HTML Report:** coverage-report artifact holds the HTML summary" >> $GITHUB_STEP_SUMMARY
           echo "- **Codecov:** https://codecov.io/gh/${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           # Overall status
-          if [ "${{ steps.pre-commit.outcome }}" == "success" ] && \
-             [ "${{ steps.pytest.outcome }}" == "success" ] && \
-             [ "${{ steps.pyright.outcome }}" == "success" ] && \
-             [ "${{ steps.build.outcome }}" == "success" ]; then
+          if [ "${{ needs.lint.result }}" == "success" ] && \
+             [ "${{ needs.test.result }}" == "success" ] && \
+             [ "${{ needs.type-check.result }}" == "success" ] && \
+             [ "${{ needs.build.result }}" == "success" ]; then
             echo "## 🎉 All Checks Passed!" >> $GITHUB_STEP_SUMMARY
           else
             echo "## ⚠️ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "Please review the failed checks above and fix any issues." >> $GITHUB_STEP_SUMMARY
+            echo "Please review the failed jobs above." >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Fail workflow if any check failed
+      - name: Fail if any job failed
         if: |
-          steps.pre-commit.outcome != 'success' ||
-          steps.pytest.outcome != 'success' ||
-          steps.pyright.outcome != 'success' ||
-          steps.build.outcome != 'success'
+          needs.lint.result != 'success' ||
+          needs.test.result != 'success' ||
+          needs.type-check.result != 'success' ||
+          needs.build.result != 'success'
         run: exit 1
