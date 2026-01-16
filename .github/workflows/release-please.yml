@@ -1,12 +1,15 @@
 ---
 name: Release Please
+
 on:
   push:
     branches:
       - main
+
 permissions:
   contents: write
   pull-requests: write
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
@@ -16,6 +19,7 @@ jobs:
         with:
           release-type: python
           package-name: refi-calculator
+
       - name: Release Summary
         if: always()
         run: |
