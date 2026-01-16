@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
           cache: "poetry"
 
       - name: Cache pre-commit hooks
@@ -55,7 +55,7 @@ jobs:
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python-version }}
+          python-version: "${{ matrix.python-version }}"
           cache: "poetry"
 
       - name: Install dependencies
@@ -112,7 +112,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
           cache: "poetry"
 
       - name: Install dependencies
@@ -135,7 +135,7 @@ jobs:
       - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
         uses: actions/setup-python@v5
         with:
-          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          python-version: "${{ env.DEFAULT_PYTHON_VERSION }}"
           cache: "poetry"
 
       - name: Install dependencies
@@ -166,7 +166,7 @@ jobs:
 
           echo "### Environment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "- **Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ eng.DEFAULT_PYTHON_VERSION }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Runner OS:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -185,7 +185,6 @@ jobs:
           if [ "${{ steps.pytest.outcome }}" == "success" ]; then
             echo "- ✅ **Tests** - All tests passed" >> $GITHUB_STEP_SUMMARY
             if [ -n "${{ steps.pytest.outputs.coverage }}" ]; then
-              echo "  - Coverage: ${{ steps.pytest.outputs.coverage }}" >> $GITHUB_STEP_SUMMARY
             fi
           else
             echo "- ❌ **Tests** - Some tests failed" >> $GITHUB_STEP_SUMMARY
