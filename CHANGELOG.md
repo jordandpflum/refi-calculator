@@ -1,5 +1,26 @@
 # Changelog
 
+- Planned for the upcoming v0.8.0 release by adding a MkDocs-powered documentation site.
+  Generated API reference, guide, and index pages keep the online docs and README badge accurate.
+- Added a `docs` workflow that installs dependencies via Poetry and publishes the MkDocs site.
+  The workflow aligns with the hosted docs link used in the README.
+  It also matches the Streamlit preview instructions.
+- Centralized GUI tab builders behind a `builders` package export.
+  Updated the chart classes to accept `tk.Misc` parents so typing is clearer and reuse is easier.
+- Expanded docs tooling by adding `mkdocs`, `mkdocstrings`, and literate navigation dependencies.
+  Introduced helper scripts that auto-generate reference pages from `src/`.
+
+## [0.7.1]
+
+- Refactored market constants into `refi_calculator.core.market.constants`.
+  Both the GUI and Streamlit web placeholder now consume a single source of truth.
+  This covers tenor options and the default period.
+
+## [0.7.0]
+
+- Tuned the executables builder so it runs only on `release` events marked `published`.
+  The CI workflow now runs on every pull request regardless of branch to broaden validation.
+
 ## [0.6.0]
 
 - Split shared calculations, models, and chart helpers into the new `refi_calculator.core`
@@ -77,7 +98,8 @@
 
 ## [0.2.0]
 
-- Added a refreshed Market tab with a combined 30y/15y legend-driven chart plus a multi-column table.
+- Added a refreshed Market tab with a combined 30y/15y legend-driven chart.
+- Also added a multi-column table to show the expanded data.
 - Cached FRED rate fetches (15-minute TTL) with manual refresh and cache status indicator.
 - Introduced range selectors (1y default plus 2y, 5y, all) so the graph/table can show longer spans.
 - Documented the API key requirement and new time-range controls.
