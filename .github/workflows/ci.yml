@@ -6,8 +6,41 @@ name: CI
     branches: [main]
   pull_request:
 
+env: DEFAULT_PYTHON_VERSION = "3.13"
+
 jobs:
+  lint:
+    name: Lint and Format
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
+
+      - name: Cache pre-commit hooks
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: >
+            ${{ runner.os }}-py${{ env.DEFAULT_PYTHON_VERSION }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install dependencies
+        run: poetry install --all-extras
+
+      - name: Run pre-commit
+        id: pre-commit
+        run: poetry run pre-commit run --all-files
+        continue-on-error: true
+
   test:
+    name: Tests (Python ${{ matrix.python-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -24,19 +57,8 @@ jobs:
           python-version: ${{ matrix.python-version }}
           cache: "poetry"
 
-      - name: Cache pre-commit hooks
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pre-commit
-          key: ${{ runner.os }}-py${{ matrix.python-version }}-pre-commit-${{ hashFiles('.pre-commit-config.yaml') }}
-
       - name: Install dependencies
         run: poetry install --all-extras
-
-      - name: Run pre-commit
-        id: pre-commit
-        run: poetry run pre-commit run --all-files
-        continue-on-error: true
 
       - name: Run tests with coverage
         id: pytest
@@ -77,35 +99,87 @@ jobs:
           name: coverage-report
           path: htmlcov/
 
+  type-check:
+    name: Type Checking
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: poetry install --all-extras
+
       - name: Run type checking
         id: pyright
         run: poetry run pyright
         continue-on-error: true
 
-      - name: Verify build
+  build:
+    name: Build Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Poetry
+        run: pipx install poetry
+
+      - name: Set up Python ${{ env.DEFAULT_PYTHON_VERSION }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.DEFAULT_PYTHON_VERSION }}
+          cache: "poetry"
+
+      - name: Install dependencies
+        run: poetry install --all-extras
+
+      - name: Build Package
         id: build
         run: poetry build
         continue-on-error: true
 
-      - name: CI Summary
-        if: always()
+      - name: Upload build artifacts
+        uses: actions/upload-artifacts@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7
+
+  summary:
+    name: CI Summary
+    runs-on: ubuntu-latest
+    needs: [lint, test, type-check, build]
+    if: always()
+    steps:
+      - name: Check job results
         run: |
           echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "### Environment" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Runner OS:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "### Check Results" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
+
           # Pre-commit
           if [ "${{ steps.pre-commit.outcome }}" == "success" ]; then
             echo "- ✅ **Pre-commit hooks** - All checks passed" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ **Pre-commit hooks** - Some checks failed" >> $GITHUB_STEP_SUMMARY
           fi
+
           # Tests
           if [ "${{ steps.pytest.outcome }}" == "success" ]; then
             echo "- ✅ **Tests** - All tests passed" >> $GITHUB_STEP_SUMMARY
@@ -115,19 +189,23 @@ jobs:
           else
             echo "- ❌ **Tests** - Some tests failed" >> $GITHUB_STEP_SUMMARY
           fi
+
           # Type checking
           if [ "${{ steps.pyright.outcome }}" == "success" ]; then
             echo "- ✅ **Type checking** - No type errors" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ **Type checking** - Type errors found" >> $GITHUB_STEP_SUMMARY
           fi
+
           # Build
           if [ "${{ steps.build.outcome }}" == "success" ]; then
             echo "- ✅ **Build** - Package built successfully" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ❌ **Build** - Build failed" >> $GITHUB_STEP_SUMMARY
           fi
+
           echo "" >> $GITHUB_STEP_SUMMARY
+
           echo "### 📊 Coverage Report" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "- **HTML Report:** coverage-report artifact holds the HTML summary" >> $GITHUB_STEP_SUMMARY
