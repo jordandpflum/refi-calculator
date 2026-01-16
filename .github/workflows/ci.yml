@@ -1,8 +1,11 @@
+---
 name: CI
-on:
+
+"on":
   push:
     branches: [main]
   pull_request:
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -34,10 +37,84 @@ jobs:
         run: poetry run pre-commit run --all-files
 
       - name: Run tests with coverage
-        run: poetry run pytest --cov=src --cov-report=term-missing
+        run: poetry run pytest --cov=src --cov-report=term-missing --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        if: matrix.python-version == '3.13'
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
 
       - name: Run type checking
         run: poetry run pyright
 
       - name: Verify build
         run: poetry build
+
+      - name: CI Summary
+        if: always()
+        run: |
+          echo "## CI Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Environment" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python Version:** ${{ matrix.python-version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Runner OS:** ${{ runner.os }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Branch:** ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          echo "### Check Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Pre-commit
+          if [ "${{ steps.pre-commit.outcome }}" == "success" ]; then
+            echo "✅ **Pre-commit hooks** - All checks passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Pre-commit hooks** - Some checks failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Tests
+          if [ "${{ steps.pytest.outcome }}" == "success" ]; then
+            echo "✅ **Tests** - All tests passed" >> $GITHUB_STEP_SUMMARY
+            if [ -n "${{ steps.pytest.outputs.coverage }}" ]; then
+              echo "  - Coverage: ${{ steps.pytest.outputs.coverage }}" >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "❌ **Tests** - Some tests failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Type checking
+          if [ "${{ steps.pyright.outcome }}" == "success" ]; then
+            echo "✅ **Type checking** - No type errors" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Type checking** - Type errors found" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Build
+          if [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "✅ **Build** - Package built successfully" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Build** - Build failed" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Overall status
+          if [ "${{ steps.pre-commit.outcome }}" == "success" ] && \
+             [ "${{ steps.pytest.outcome }}" == "success" ] && \
+             [ "${{ steps.pyright.outcome }}" == "success" ] && \
+             [ "${{ steps.build.outcome }}" == "success" ]; then
+            echo "### 🎉 All Checks Passed!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "### ⚠️ Some Checks Failed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Please review the failed checks above and fix any issues." >> $GITHUB_STEP_SUMMARY
+          fi
+
+      - name: Fail workflow if any check failed
+        if: |
+          steps.pre-commit.outcome != 'success' ||
+          steps.pytest.outcome != 'success' ||
+          steps.pyright.outcome != 'success' ||
+          steps.build.outcome != 'success'
+        run: exit 1
