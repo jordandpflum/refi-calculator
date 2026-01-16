@@ -40,7 +40,7 @@ jobs:
             echo "- **Tag:** ${tag}" >> $GITHUB_STEP_SUMMARY
             echo "- **Version:** ${version}" >> $GITHUB_STEP_SUMMARY
             echo "- **Release URL:** ${release_url}" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ steps.release.outputs.pr }}" != "" ]; then
+          elif [ -n "${{ steps.release.outputs.pr }}" ]; then
             echo "📝 **Release PR Updated**" >> $GITHUB_STEP_SUMMARY
             echo "- **PR #:** ${pr_number}" >> $GITHUB_STEP_SUMMARY
             echo "- **PR URL:** ${pr_url}" >> $GITHUB_STEP_SUMMARY
