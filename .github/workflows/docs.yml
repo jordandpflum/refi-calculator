@@ -1,8 +1,10 @@
+---
 name: Docs
 
-on:
+"on":
   push:
     branches: [main]
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -12,14 +14,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Install Poetry
         run: pipx install poetry
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
           cache: "poetry"
+
       - name: Install dependencies
         run: poetry install --with dev
+
       - name: Deploy docs
         run: poetry run mkdocs gh-deploy --force
+
+      - name: Docs Deployment Summary
+        if: always()
+        run: |
+          docs_url="https://${{ github.repository_owner }}.github.io/refi-calculator/"
+          echo "## Documentation Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ $? -eq 0 ]; then
+            echo "✅ **Documentation Deployed Successfully**" >> $GITHUB_STEP_SUMMARY
+            echo "- **Branch:** gh-pages" >> $GITHUB_STEP_SUMMARY
+            echo "- **Docs URL:** ${docs_url}" >> $GITHUB_STEP_SUMMARY
+            echo "- **Commit:** ${{ github.sha }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "> Documentation will be live in a few moments" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "❌ **Documentation Deployment Failed**" >> $GITHUB_STEP_SUMMARY
+            echo "- Check the logs above for errors" >> $GITHUB_STEP_SUMMARY
+          fi
