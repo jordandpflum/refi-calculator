@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.2](https://github.com/jordandpflum/refi-calculator/compare/v0.9.1...v0.9.2) (2026-01-16)
+
+
+### Bug Fixes
+
+* **ci:** Adjust package name ([#42](https://github.com/jordandpflum/refi-calculator/issues/42)) ([9e02d60](https://github.com/jordandpflum/refi-calculator/commit/9e02d60c7b2e09993a950777a3dc211bc6a2f7c7))
+* **ci:** Fix Release Pipeline ([#39](https://github.com/jordandpflum/refi-calculator/issues/39)) ([1214974](https://github.com/jordandpflum/refi-calculator/commit/12149745cf502f3908750b7abd8deb390e670ecd))
+* **ci:** fix toml affecting release pipeline ([#41](https://github.com/jordandpflum/refi-calculator/issues/41)) ([b6e80f4](https://github.com/jordandpflum/refi-calculator/commit/b6e80f4803dab3526ea69757c0436a17fee74e6d))
+
 ## [0.9.1](https://github.com/jordandpflum/refi-calculator/compare/v0.9.0...v0.9.1) (2026-01-16)
 
 
