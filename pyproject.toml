@@ -29,7 +29,7 @@ refi-calculator-web = "refi_calculator.web.runner:main"
 
 [tool.poetry]
 packages = [{ include = "refi_calculator", from = "src" }]
-version = "0.0.0"
+version = "0.8.0"
 
 [tool.poetry.group.dev.dependencies]
 pylint = { version = "^3.3.9" }
