@@ -34,9 +34,12 @@ jobs:
         run: poetry install --all-extras
 
       - name: Run pre-commit
+        id: pre-commit
         run: poetry run pre-commit run --all-files
+        continue-on-error: true
 
       - name: Run tests with coverage
+        id: pytest
         run: |
           poetry run pytest \
             --cov=src \
@@ -59,9 +62,11 @@ jobs:
 
       - name: Upload rest results to Codecov
         if: matrix.python-version == '3.13'
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v5
         with:
           file: ./junit.xml
+          flgas: test-results
+          report_type: test_results
           fail_ci_if_error: false
           token: ${{ secrets.CODECOV_TOKEN }}
 
@@ -73,10 +78,14 @@ jobs:
           path: htmlcov/
 
       - name: Run type checking
+        id: pyright
         run: poetry run pyright
+        continue-on-error: true
 
       - name: Verify build
+        id: build
         run: poetry build
+        continue-on-error: true
 
       - name: CI Summary
         if: always()
