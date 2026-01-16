@@ -12,6 +12,7 @@ from refi_calculator.environment import (
     _strip_quotes,
     load_dotenv,
 )
+from refi_calculator.environment import logger as environment_logger
 
 
 def test_load_dotenv_reads_values(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -93,8 +94,12 @@ def test_strip_quotes_drops_wrapping_chars() -> None:
     assert _strip_quotes("'mismatched\"") == "'mismatched\""
 
 
-def test_parse_dotenv_line_handles_exports_and_malformed_lines() -> None:
+def test_parse_dotenv_line_handles_exports_and_malformed_lines(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Export prefixes and invalid lines are handled gracefully."""
+
+    monkeypatch.setattr(environment_logger, "warning", lambda *args, **kwargs: None)
 
     assert _parse_dotenv_line("export KEY=value") == ("KEY", "value")
     assert _parse_dotenv_line("KEY=value=with=equals") == ("KEY", "value=with=equals")
@@ -125,6 +130,7 @@ def test_load_dotenv_raises_when_file_unreadable(
         return original_read_text(self, *args, **kwargs)
 
     monkeypatch.setattr(Path, "read_text", _fail_read)
+    monkeypatch.setattr(environment_logger, "exception", lambda *args, **kwargs: None)
 
     with pytest.raises(OSError):
         load_dotenv(dotenv_path=dotenv_path)

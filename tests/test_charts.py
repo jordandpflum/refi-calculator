@@ -45,10 +45,25 @@ def test_build_linear_ticks_regular_range_returns_even_intervals() -> None:
     assert ticks == [0.0, 2.0, 4.0, 6.0, 8.0]
 
 
+def test_build_month_ticks_single_tick_request_returns_final_month() -> None:
+    """Requesting a single tick collapses the axis to the final month."""
+
+    assert charts.build_month_ticks(max_month=7, max_ticks=1) == [7]
+
+
+def test_build_month_ticks_does_not_exceed_month_range() -> None:
+    """Tick generation caps at the number of months even if more ticks were requested."""
+
+    ticks = charts.build_month_ticks(max_month=3, max_ticks=10)
+    assert ticks == [0, 1, 2, 3]
+
+
 __all__ = [
     "test_build_month_ticks_zero_max_returns_zero",
     "test_build_month_ticks_produces_distinct_ticks",
     "test_build_linear_ticks_insufficient_max_ticks_returns_extremes",
     "test_build_linear_ticks_zero_span_expands_range",
     "test_build_linear_ticks_regular_range_returns_even_intervals",
+    "test_build_month_ticks_single_tick_request_returns_final_month",
+    "test_build_month_ticks_does_not_exceed_month_range",
 ]
