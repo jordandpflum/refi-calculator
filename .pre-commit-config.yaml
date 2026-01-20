@@ -89,6 +89,7 @@ repos:
           - mdformat-web
           - mdformat-pyproject
         files: \.md$
+        exclude: '^CHANGELOG\.md$'
 
   - repo: https://github.com/igorshubovych/markdownlint-cli
     rev: "v0.45.0"
@@ -98,6 +99,7 @@ repos:
           - "--fix"
           - "--config=.markdownlint.yaml"
         files: \.md$
+        exclude: '^CHANGELOG\.md$'
 
   - repo: https://github.com/adamchainz/blacken-docs
     rev: 1.20.0
@@ -107,6 +109,7 @@ repos:
         args: ["--pyi", "--line-length", "100", "--target-version", "py313"]
         additional_dependencies:
           - black==25.9.0
+        exclude: '^CHANGELOG\.md$'
 
   - repo: https://github.com/pycqa/flake8
     rev: "7.3.0"
