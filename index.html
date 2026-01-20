@@ -1549,22 +1549,20 @@
 
 
 <h1 id="refi-calculator">Refi Calculator</h1>
-<p>Refi Calculator is a multi-interface toolkit that helps homeowners and finance professionals
-evaluate refinancing decisions. The package blends a full-featured Tkinter GUI with a Streamlit
-placeholder for future web delivery, a CLI entry point, and a core analytics library so every
-interface relies on consistent calculations.</p>
+<p>Refi Calculator is a multi-interface toolkit that helps homeowners and finance professionals evaluate refinancing
+decisions. The package blends a full-featured Tkinter GUI with a Streamlit placeholder for future web delivery, a CLI
+entry point, and a core analytics library so every interface relies on consistent calculations.</p>
 <h2 id="key-capabilities">Key Capabilities</h2>
 <ul>
-<li><strong>Side-by-side loan comparisons</strong> for current vs. proposed mortgages covering nominal
-  payments, after-tax analysis, and amortization.</li>
-<li><strong>Decision support</strong> such as breakeven and holding-period tables, plus accelerated payoff
-  scenarios that keep target payments constant.</li>
-<li><strong>Insightful visualizations</strong> via the Tkinter tabbed UI: refreshed cumulative savings chart,
-  loan balance comparison, and the amortization table that highlights cumulative interest deltas.</li>
-<li><strong>Market intelligence</strong> when the <code>FRED_API_KEY</code> is provided: historical 30-year fixed rates,
-  live default refinance estimates, and dual-tenor comparison tables.</li>
-<li><strong>Export-ready data</strong> for every tab so downstream tools or reports can consume precise CSV
-  exports.</li>
+<li><strong>Side-by-side loan comparisons</strong> for current vs. proposed mortgages covering nominal payments, after-tax analysis,
+  and amortization.</li>
+<li><strong>Decision support</strong> such as breakeven and holding-period tables, plus accelerated payoff scenarios that keep target
+  payments constant.</li>
+<li><strong>Insightful visualizations</strong> via the Tkinter tabbed UI: refreshed cumulative savings chart, loan balance comparison,
+  and the amortization table that highlights cumulative interest deltas.</li>
+<li><strong>Market intelligence</strong> when the <code>FRED_API_KEY</code> is provided: historical 30-year fixed rates, live default refinance
+  estimates, and dual-tenor comparison tables.</li>
+<li><strong>Export-ready data</strong> for every tab so downstream tools or reports can consume precise CSV exports.</li>
 </ul>
 <h2 id="quick-links-navigation">Quick Links &amp; Navigation</h2>
 <table>
@@ -1593,46 +1591,44 @@ interface relies on consistent calculations.</p>
 </tr>
 </tbody>
 </table>
-<p>Use the navigation pane (Home, User Guide, API Reference) to jump into each document or explore
-the generated reference pages from <code>docs/gen_ref_pages.py</code>.</p>
+<p>Use the navigation pane (Home, User Guide, API Reference) to jump into each document or explore the generated reference
+pages from <code>docs/gen_ref_pages.py</code>.</p>
 <h2 id="environment-entry-points">Environment &amp; Entry Points</h2>
 <ol>
-<li><strong>Runtime requirements</strong>: Python 3.13+, Poetry-managed dependencies, and an optional <code>.venv/</code>
-   for isolation.</li>
-<li><strong>GUI launch</strong>: <code>poetry run refi-calculator</code> (the console script wires into
-   <code>refi_calculator.gui.app:main</code>).</li>
-<li><strong>Hosted Streamlit experience</strong>: Visit <a href="https://refi-calculator.streamlit.app/">https://refi-calculator.streamlit.app/</a>
-   for the hosted preview powered by the Streamlit placeholder layers.</li>
+<li><strong>Runtime requirements</strong>: Python 3.13+, Poetry-managed dependencies, and an optional <code>.venv/</code> for isolation.</li>
+<li><strong>GUI launch</strong>: <code>poetry run refi-calculator</code> (the console script wires into <code>refi_calculator.gui.app:main</code>).</li>
+<li><strong>Hosted Streamlit experience</strong>: Visit
+   <a href="https://refi-calculator.streamlit.app/">https://refi-calculator.streamlit.app/</a> for the hosted preview powered by
+   the Streamlit placeholder layers.</li>
 <li><strong>Web placeholder</strong>: enable <code>[web]</code> extras and run <code>poetry run refi-calculator-web</code> to start
    <code>streamlit run src/refi_calculator/web/app.py</code> and continue iterating toward the future web UI.</li>
-<li><strong>CLI scaffolding</strong>: <code>src/refi_calculator/cli.py</code> and <code>bin/refi-calculator.py</code> share logging and
-   configuration plumbing for command-line workflows.</li>
+<li><strong>CLI scaffolding</strong>: <code>src/refi_calculator/cli.py</code> and <code>bin/refi-calculator.py</code> share logging and configuration
+   plumbing for command-line workflows.</li>
 </ol>
 <h2 id="development-quality">Development &amp; Quality</h2>
 <ul>
 <li><strong>Testing</strong>: <code>poetry run pytest</code> (tests live under <code>tests/</code> following <code>test_*.py</code>).</li>
-<li><strong>Pre-commit checks</strong>: <code>poetry run pre-commit run --all-files</code> keeps formatting (Black, Ruff,
-  isort) and linting in sync.</li>
-<li><strong>Documentation generation</strong>: <code>mkdocs</code> powers static sites with plugins for search, literate
-  navigation, and mkdocstrings referencing <code>src/</code>.</li>
-<li><strong>Versioning and releases</strong>: use conventional commits (<code>feat</code>, <code>fix</code>, <code>docs</code>, etc.) and keep
-  changelog entries in <code>CHANGELOG.md</code> aligned with PyPI releases.</li>
+<li><strong>Pre-commit checks</strong>: <code>poetry run pre-commit run --all-files</code> keeps formatting (Black, Ruff, isort) and linting in
+  sync.</li>
+<li><strong>Documentation generation</strong>: <code>mkdocs</code> powers static sites with plugins for search, literate navigation, and
+  mkdocstrings referencing <code>src/</code>.</li>
+<li><strong>Versioning and releases</strong>: use conventional commits (<code>feat</code>, <code>fix</code>, <code>docs</code>, etc.) and keep changelog entries in
+  <code>CHANGELOG.md</code> aligned with PyPI releases.</li>
 </ul>
 <h2 id="contribution-guidance">Contribution Guidance</h2>
 <ul>
-<li>Update docs (<code>docs/guide.md</code> and <code>docs/index.md</code>) whenever behavior changes or new capabilities
-  are added.</li>
-<li>Keep feature branches focused; run targeted tests locally and ensure all relevant hooks pass
-  before opening a pull request.</li>
-<li>For automation updates (PowerShell scripts, bin scripts), preserve the structure outlined in
-  <code>AGENTS.md</code> and mirror logging/transcript behavior.</li>
-<li>Refer to <code>AGENTS.md</code> for standards on module headers, docstrings, logging, and error handling so
-  every Python module stays consistent.</li>
+<li>Update docs (<code>docs/guide.md</code> and <code>docs/index.md</code>) whenever behavior changes or new capabilities are added.</li>
+<li>Keep feature branches focused; run targeted tests locally and ensure all relevant hooks pass before opening a pull
+  request.</li>
+<li>For automation updates (PowerShell scripts, bin scripts), preserve the structure outlined in <code>AGENTS.md</code> and mirror
+  logging/transcript behavior.</li>
+<li>Refer to <code>AGENTS.md</code> for standards on module headers, docstrings, logging, and error handling so every Python module
+  stays consistent.</li>
 </ul>
 <h2 id="next-steps">Next Steps</h2>
 <ul>
-<li>Dive into the <strong>User Guide</strong> to see detailed workflows for using the GUI, enabling the market
-  tab, and contributing safely.</li>
+<li>Dive into the <strong>User Guide</strong> to see detailed workflows for using the GUI, enabling the market tab, and contributing
+  safely.</li>
 <li>Browse <strong>API Reference</strong> for individual plot builders, calculators, and models exposed under
   <code>src/refi_calculator/core/</code>.</li>
 <li>Run <code>docs/gen_ref_pages.py</code> when you add new modules so the reference site stays current.</li>

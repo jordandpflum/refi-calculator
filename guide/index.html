@@ -1617,112 +1617,139 @@
 
 
 <h1 id="user-guide">User Guide</h1>
-<p>This guide walks through installing, configuring, and operating Refi Calculator across the GUI,
-web placeholder, and supporting tooling. Follow the sections below in order, or jump straight to
-the workflow that matches your role (borrower, analyst, or maintainer).</p>
+<p>This guide walks through installing, configuring, and operating Refi Calculator across the GUI, web placeholder, and
+supporting tooling. Follow the sections below in order, or jump straight to the workflow that matches your role
+(borrower, analyst, or maintainer).</p>
 <h2 id="project-intent">Project Intent</h2>
-<p>Refi Calculator is a decision-support suite for borrowers who want to understand how a refinance
-offer stacks up against an existing mortgage. The GUI layers clear comparisons, visualizations,
-and forecasts on top of a single analytics core, so every view (breakeven, holding period,
-amortization, or savings chart) relies on consistent rules, taxation assumptions, and payoff math.</p>
+<p>Refi Calculator is a decision-support suite for borrowers who want to understand how a refinance offer stacks up against
+an existing mortgage. The GUI layers clear comparisons, visualizations, and forecasts on top of a single analytics core,
+so every view (breakeven, holding period, amortization, or savings chart) relies on consistent rules, taxation
+assumptions, and payoff math.</p>
 <h2 id="installation-environment-setup">Installation &amp; Environment Setup</h2>
 <ol>
-<li><strong>System requirements</strong></li>
-<li>Python 3.13 or newer.</li>
+<li>
+<p><strong>System requirements</strong></p>
+</li>
+<li>
+<p>Python 3.13 or newer.</p>
+</li>
 <li>Poetry for dependency resolution and virtual environment management.</li>
-<li>A shell capable of activating the generated <code>.venv/</code> in the project root (standard on macOS/
-     Linux).</li>
-<li><strong>Bootstrap the project</strong></li>
+<li>
+<p>A shell capable of activating the generated <code>.venv/</code> in the project root (standard on macOS/ Linux).</p>
+</li>
+<li>
+<p><strong>Bootstrap the project</strong></p>
+</li>
 </ol>
 <p><code>bash
    poetry install</code></p>
-<p>This command installs runtime and development dependencies, generates the virtual environment,
-   and registers Git hooks declared in <code>.pre-commit-config.yaml</code>.
-3. <strong>Optional extras</strong>
-   - Install GUI-only requirements via <code>pip install .[gui]</code> (already included when running <code>poetry
-     install</code>).
-   - Add the web placeholder dependencies with <code>pip install .[web]</code> to bring in Streamlit and
-     front-end helpers.
-4. <strong>Environment variables</strong>
-   - Provide <code>FRED_API_KEY</code> to enable the Market tab to refresh historical 30-year fixed rates from
-     the Federal Reserve Economic Data (FRED) API. The key populates tables and the default
-     refinance rate.</p>
+<p>This command installs runtime and development dependencies, generates the virtual environment, and registers Git
+   hooks declared in <code>.pre-commit-config.yaml</code>.</p>
+<ol>
+<li>
+<p><strong>Optional extras</strong></p>
+</li>
+<li>
+<p>Install GUI-only requirements via <code>pip install .[gui]</code> (already included when running <code>poetry install</code>).</p>
+</li>
+<li>
+<p>Add the web placeholder dependencies with <code>pip install .[web]</code> to bring in Streamlit and front-end helpers.</p>
+</li>
+<li>
+<p><strong>Environment variables</strong></p>
+</li>
+<li>
+<p>Provide <code>FRED_API_KEY</code> to enable the Market tab to refresh historical 30-year fixed rates from the Federal Reserve
+     Economic Data (FRED) API. The key populates tables and the default refinance rate.</p>
+</li>
+</ol>
 <h2 id="running-the-tkinter-gui">Running the Tkinter GUI</h2>
 <ol>
 <li><strong>Launch command</strong></li>
 </ol>
 <p><code>bash
    poetry run refi-calculator</code></p>
-<p>The <code>refi-calculator</code> console script routes to <code>refi_calculator.gui.app:main</code>, which initializes
-   the tabs, logging, and data exporters.
-2. <strong>GUI layout highlights</strong>
-   - <strong>Overview tab</strong>: Compares current and proposed loans using nominal and after-tax payments
-     while surfacing an early decision recommendation.
-   - <strong>Breakeven tab</strong>: Shows when tax-adjusted savings justify the refinance. Use the table
-     filters to focus on different holding periods.
-   - <strong>Holding Period tab</strong>: Projects payments over discrete horizons so you can model shorter
-     timeframes.
-   - <strong>Loan Visualizations tab</strong>: Displays the amortization table (with cumulative interest delta
-     column), the refreshed cumulative savings chart, and the new balance comparison chart for
-     both loans.
-   - <strong>Market tab</strong>: When <code>FRED_API_KEY</code> exists, the tab pulls the latest 30-year fixed data,
-     toggles between tenors (15Y/30Y), and pre-fills the refinance rate. If the API call fails or
-     the key is absent, the UI logs the skip but keeps other tabs operational.
-3. <strong>Exporting insights</strong>
-   Every tab includes a CSV export button. Use this to feed spreadsheets or downstream analytics
+<p>The <code>refi-calculator</code> console script routes to <code>refi_calculator.gui.app:main</code>, which initializes the tabs, logging,
+   and data exporters.</p>
+<ol>
+<li>
+<p><strong>GUI layout highlights</strong></p>
+</li>
+<li>
+<p><strong>Overview tab</strong>: Compares current and proposed loans using nominal and after-tax payments while surfacing an early
+     decision recommendation.</p>
+</li>
+<li><strong>Breakeven tab</strong>: Shows when tax-adjusted savings justify the refinance. Use the table filters to focus on
+     different holding periods.</li>
+<li><strong>Holding Period tab</strong>: Projects payments over discrete horizons so you can model shorter timeframes.</li>
+<li><strong>Loan Visualizations tab</strong>: Displays the amortization table (with cumulative interest delta column), the refreshed
+     cumulative savings chart, and the new balance comparison chart for both loans.</li>
+<li>
+<p><strong>Market tab</strong>: When <code>FRED_API_KEY</code> exists, the tab pulls the latest 30-year fixed data, toggles between tenors
+     (15Y/30Y), and pre-fills the refinance rate. If the API call fails or the key is absent, the UI logs the skip but
+     keeps other tabs operational.</p>
+</li>
+<li>
+<p><strong>Exporting insights</strong> Every tab includes a CSV export button. Use this to feed spreadsheets or downstream analytics
    with the exact rows shown in the table.</p>
+</li>
+</ol>
 <h2 id="running-the-streamlit-web-placeholder">Running the Streamlit Web Placeholder</h2>
 <ol>
-<li><strong>Install extras</strong>: <code>pip install .[web]</code> (if not already part of <code>poetry install</code>).</li>
-<li><strong>Launch command</strong></li>
+<li>
+<p><strong>Install extras</strong>: <code>pip install .[web]</code> (if not already part of <code>poetry install</code>).</p>
+</li>
+<li>
+<p><strong>Launch command</strong></p>
+</li>
 </ol>
 <p><code>bash
    poetry run refi-calculator-web</code></p>
-<p>This command invokes <code>streamlit run src/refi_calculator/web/app.py</code>, giving you a browser-based
-   preview of the future web experience while retaining centralized configuration logic. The same
-   Streamlit workflow also hosts at <a href="https://refi-calculator.streamlit.app/">https://refi-calculator.streamlit.app/</a>
-   for a zero-install, shareable showcase.
-3. <strong>Behavior</strong>
-   The placeholder mirrors the GUI's core calculations but simplifies interactions for rapid
-   prototyping. Expect limited functionality while the Streamlit UI continues to evolve.</p>
+<p>This command invokes <code>streamlit run src/refi_calculator/web/app.py</code>, giving you a browser-based preview of the future
+   web experience while retaining centralized configuration logic. The same Streamlit workflow also hosts at
+   <a href="https://refi-calculator.streamlit.app/">https://refi-calculator.streamlit.app/</a> for a zero-install, shareable
+   showcase.</p>
+<ol>
+<li><strong>Behavior</strong> The placeholder mirrors the GUI's core calculations but simplifies interactions for rapid prototyping.
+   Expect limited functionality while the Streamlit UI continues to evolve.</li>
+</ol>
 <h2 id="cli-automation-considerations">CLI &amp; Automation Considerations</h2>
 <ul>
-<li>The CLI entry point <code>refi_calculator.cli</code> centralizes logging configuration, verbosity controls,
-  and optional JSON config loading. Use <code>bin/refi-calculator.py</code> for scriptable hooks or automation
-  wrappers.</li>
-<li>PowerShell scripts inside <code>automation/</code> follow the structure described in <code>AGENTS.md</code>, including
-  transcript logging, repository management, Poetry activation, and safe cleanup.</li>
+<li>The CLI entry point <code>refi_calculator.cli</code> centralizes logging configuration, verbosity controls, and optional JSON
+  config loading. Use <code>bin/refi-calculator.py</code> for scriptable hooks or automation wrappers.</li>
+<li>PowerShell scripts inside <code>automation/</code> follow the structure described in <code>AGENTS.md</code>, including transcript logging,
+  repository management, Poetry activation, and safe cleanup.</li>
 </ul>
 <h2 id="data-logs-and-troubleshooting">Data, Logs, and Troubleshooting</h2>
 <ul>
-<li><strong>Market data</strong>: If historical data is unavailable, the Market tab reports the reason via the GUI
-  log window and gracefully disables the missing dataset. Always verify <code>FRED_API_KEY</code> formatting
-  and connectivity when the tab reports stale data.</li>
-<li><strong>Logging</strong>: Related modules use <code>logging.getLogger(__name__)</code>; check the console output when you
-  encounter inconsistent calculations or GUI launch failures.</li>
-<li><strong>Exception handling</strong>: The core follows the <code>logger.exception(...); raise</code> pattern whenever an
-  unexpected condition occurs, keeping tracebacks accessible for maintainers.</li>
+<li><strong>Market data</strong>: If historical data is unavailable, the Market tab reports the reason via the GUI log window and
+  gracefully disables the missing dataset. Always verify <code>FRED_API_KEY</code> formatting and connectivity when the tab reports
+  stale data.</li>
+<li><strong>Logging</strong>: Related modules use <code>logging.getLogger(__name__)</code>; check the console output when you encounter
+  inconsistent calculations or GUI launch failures.</li>
+<li><strong>Exception handling</strong>: The core follows the <code>logger.exception(...); raise</code> pattern whenever an unexpected condition
+  occurs, keeping tracebacks accessible for maintainers.</li>
 </ul>
 <h2 id="testing-quality-assurance">Testing &amp; Quality Assurance</h2>
 <ul>
 <li>Run <code>poetry run pytest</code> to execute tests under <code>tests/</code> (expand coverage as functionality grows).</li>
-<li>Use <code>poetry run pre-commit run --all-files</code> to ensure formatting and linting (Black, Ruff, etc.)
-  remain consistent with project policy.</li>
-<li>Add tests whenever you introduce calculations or UI logic; align file names with <code>test_*.py</code> and
-  place shared fixtures in the appropriate <code>conftest.py</code> files.</li>
+<li>Use <code>poetry run pre-commit run --all-files</code> to ensure formatting and linting (Black, Ruff, etc.) remain consistent
+  with project policy.</li>
+<li>Add tests whenever you introduce calculations or UI logic; align file names with <code>test_*.py</code> and place shared fixtures
+  in the appropriate <code>conftest.py</code> files.</li>
 </ul>
 <h2 id="contributions-release-readiness">Contributions &amp; Release Readiness</h2>
 <ol>
 <li><strong>Workflow</strong></li>
-<li>Branch from <code>main</code>, keep changes focused, and describe your work with a conventional commit
-     message (<code>feat</code>, <code>fix</code>, <code>docs</code>, etc.).</li>
+<li>Branch from <code>main</code>, keep changes focused, and describe your work with a conventional commit message (<code>feat</code>, <code>fix</code>,
+     <code>docs</code>, etc.).</li>
 <li>Update <code>CHANGELOG.md</code> when you ship features or fixes that users should notice.</li>
 <li><strong>Documentation</strong></li>
 <li>Refresh <code>docs/guide.md</code> or <code>docs/index.md</code> whenever behavior changes or new interfaces emerge.</li>
 <li>Regenerate auto reference pages with <code>python docs/gen_ref_pages.py</code> if you add new modules.</li>
 <li><strong>Publishing</strong></li>
-<li>After review and testing, <code>poetry publish</code> targets PyPI releases (the project already publishes
-     via GitHub Actions using the CI workflow described in <code>README.md</code>).</li>
+<li>After review and testing, <code>poetry publish</code> targets PyPI releases (the project already publishes via GitHub Actions
+     using the CI workflow described in <code>README.md</code>).</li>
 </ol>
 <h2 id="additional-resources">Additional Resources</h2>
 <ul>
