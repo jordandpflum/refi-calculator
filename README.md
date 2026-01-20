@@ -1,31 +1,27 @@
 # Refi-Calculator
 
 ![CI](https://github.com/jordandpflum/refi-calculator/actions/workflows/ci.yml/badge.svg)
-![PyPI](https://img.shields.io/pypi/v/refi-calculator)
-![Python](https://img.shields.io/pypi/pyversions/refi-calculator)
+![PyPI](https://img.shields.io/pypi/v/refi-calculator) ![Python](https://img.shields.io/pypi/pyversions/refi-calculator)
 ![License](https://img.shields.io/pypi/l/refi-calculator)
 ![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)
 ![Pre-commit](https://img.shields.io/badge/pre--commit-enabled-brightgreen?logo=pre-commit)
 [![Docs](https://img.shields.io/badge/docs-MkDocs-blue)](https://jordandpflum.github.io/refi-calculator/)
 [![codecov](https://codecov.io/gh/jordandpflum/refi-calculator/branch/main/graph/badge.svg)](https://codecov.io/gh/jordandpflum/refi-calculator)
 
-Refi-Calculator helps borrowers analyze whether refinancing makes sense by comparing current and
-proposed loan terms through breakeven, NPV, amortization, and holding-period views inside a Tkinter
-GUI.
+Refi-Calculator helps borrowers analyze whether refinancing makes sense by comparing current and proposed loan terms
+through breakeven, NPV, amortization, and holding-period views inside a Tkinter GUI.
 
 ## Features
 
 - Side-by-side analysis of current vs. proposed mortgage payments (nominal and after-tax)
 - Breakeven and holding-period tables with clear recommendations
 - Accelerated payoff planning for maintaining current payment levels
-- Loan Visualizations tab with the amortization comparison table (including cumulative interest Δ)
-  plus the refreshed cumulative savings chart (ticks, zero-line label) and a new balance comparison
-  chart for current vs. new loans
+- Loan Visualizations tab with the amortization comparison table (including cumulative interest Δ) plus the refreshed
+  cumulative savings chart (ticks, zero-line label) and a new balance comparison chart for current vs. new loans
 - Exportable CSV data for every tab
-- Live market tab (when `FRED_API_KEY` is configured) surfaces historical 30-year fixed
-  rates and pre-fills the refinance rate so you start with a realistic benchmark.
-- Interactive history chart in the Market tab plus the value table below it with 30Y/15Y
-  toggles for quick comparisons.
+- Live market tab (when `FRED_API_KEY` is configured) surfaces historical 30-year fixed rates and pre-fills the
+  refinance rate so you start with a realistic benchmark.
+- Interactive history chart in the Market tab plus the value table below it with 30Y/15Y toggles for quick comparisons.
 
 ## Getting Started
 
@@ -40,11 +36,11 @@ GUI.
 poetry install
 ```
 
-This command creates the virtual environment, installs dependencies, and prepares the hooks defined
-in `.pre-commit-config.yaml`.
+This command creates the virtual environment, installs dependencies, and prepares the hooks defined in
+`.pre-commit-config.yaml`.
 
-If you only need the GUI experience, install with `pip install .[gui]`; to enable the Streamlit
-placeholder or eventual web UI, install `pip install .[web]`.
+If you only need the GUI experience, install with `pip install .[gui]`; to enable the Streamlit placeholder or eventual
+web UI, install `pip install .[web]`.
 
 For a global CLI install, use `pipx` once the package is published, or run a local install with:
 
@@ -60,16 +56,15 @@ pip install -e .
 poetry run refi-calculator
 ```
 
-The `refi-calculator` console script now launches the Tkinter application exposed via
-`refi_calculator.gui.app:main`, so you can start the GUI with `poetry run refi-calculator` or via
-`pipx` once the package is installed globally.
+The `refi-calculator` console script now launches the Tkinter application exposed via `refi_calculator.gui.app:main`, so
+you can start the GUI with `poetry run refi-calculator` or via `pipx` once the package is installed globally.
 
 ### Running the Web placeholder
 
-After installing the web optional dependencies (`pip install .[web]`), run `poetry run
-refi-calculator-web` to launch the Streamlit placeholder. That console script now invokes the
-Streamlit CLI (`streamlit run .../src/refi_calculator/web/app.py`) so you get the normal script
-context and browser experience while the full Streamlit workflow is still under construction.
+After installing the web optional dependencies (`pip install .[web]`), run `poetry run refi-calculator-web` to launch
+the Streamlit placeholder. That console script now invokes the Streamlit CLI
+(`streamlit run .../src/refi_calculator/web/app.py`) so you get the normal script context and browser experience while
+the full Streamlit workflow is still under construction.
 
 ## Testing & Quality
 
@@ -78,37 +73,32 @@ context and browser experience while the full Streamlit workflow is still under 
 
 ### Market Data Tab
 
-- Set the `FRED_API_KEY` environment variable to pull historical 30-year fixed-rate data when
-  you launch the app. The Market tab will populate a refreshable table and update the default
-  refinance rate using the latest observation. If the key is missing or the FRED request fails,
-  the tab keeps working but reports the reason for the skip.
-- Use the selectors inside the Market section to start with one year of history or extend the view
-  to two years, five years, or all available data. The chart overlays both tenors with a legend,
-  and the table below shows one column per tenor for the selected time window.
+- Set the `FRED_API_KEY` environment variable to pull historical 30-year fixed-rate data when you launch the app. The
+  Market tab will populate a refreshable table and update the default refinance rate using the latest observation. If
+  the key is missing or the FRED request fails, the tab keeps working but reports the reason for the skip.
+- Use the selectors inside the Market section to start with one year of history or extend the view to two years, five
+  years, or all available data. The chart overlays both tenors with a legend, and the table below shows one column per
+  tenor for the selected time window.
 
 Add new tests under `tests/` following the `test_*.py` pattern whenever you enhance functionality.
 
 ## Hosted Streamlit Preview
 
-- Visit
-  [https://refi-calculator.streamlit.app/](https://refi-calculator.streamlit.app/)
-  for a hosted version of the Streamlit placeholder
-  so collaborators can explore the experience without installing dependencies locally.
+- Visit [https://refi-calculator.streamlit.app/](https://refi-calculator.streamlit.app/) for a hosted version of the
+  Streamlit placeholder so collaborators can explore the experience without installing dependencies locally.
 
 ## Documentation
 
-- The MkDocs site at
-  [https://jordandpflum.github.io/refi-calculator/](https://jordandpflum.github.io/refi-calculator/)
+- The MkDocs site at [https://jordandpflum.github.io/refi-calculator/](https://jordandpflum.github.io/refi-calculator/)
   serves the full guide, API reference, and autogenerated content for the project.
 
 ## Code Structure
 
-- `src/refi_calculator/core/`: Shared calculations, models, and utility helpers used by every
-  interface.
+- `src/refi_calculator/core/`: Shared calculations, models, and utility helpers used by every interface.
 - `src/refi_calculator/gui/`: Tkinter GUI composed of:
-    - `app.py`: The main application wiring.
-    - `chart.py`: Custom savings chart canvas relying on shared helpers.
-    - `builders/`: Tab-specific builders and UI helpers.
+  - `app.py`: The main application wiring.
+  - `chart.py`: Custom savings chart canvas relying on shared helpers.
+  - `builders/`: Tab-specific builders and UI helpers.
 - `src/refi_calculator/web/`: Streamlit placeholder (future web UI) exposing `main()`.
 - `src/refi_calculator/cli.py`: CLI launcher exposed via the `refi-calculator` console script.
 - `bin/refi-calculator.py`: Entry point that runs the GUI.

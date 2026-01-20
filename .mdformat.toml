@@ -1,0 +1,13 @@
+wrap = "keep"
+number = false
+end_of_line = "lf"
+validate = true
+exclude = [
+  # exclude all files that are not suffixed .md
+  "**/?",
+  "**/??",
+  "**/???",
+  "**/*[!.]??",
+  "**/*[!m]?",
+  "**/*[!d]",
+]

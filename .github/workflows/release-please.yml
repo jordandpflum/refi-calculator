@@ -11,6 +11,9 @@ permissions:
   issues: write
   pull-requests: write
 
+env:
+  DEFAULT_PYTHON_VERSION: "3.13"
+
 jobs:
   release-please:
     runs-on: ubuntu-latest
