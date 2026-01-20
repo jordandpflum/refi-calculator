@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.9.3](https://github.com/jordandpflum/refi-calculator/compare/v0.9.2...v0.9.3) (2026-01-20)
+
+
+### Bug Fixes
+
+* **ci:** remove continue-on-error flags to enforce strict CI failures ([#47](https://github.com/jordandpflum/refi-calculator/issues/47)) ([08fcd9b](https://github.com/jordandpflum/refi-calculator/commit/08fcd9bb0e07f8582b0a7c310bb585a5c139a84e))
+* **ci:** skip format for release please ([#45](https://github.com/jordandpflum/refi-calculator/issues/45)) ([cdf6089](https://github.com/jordandpflum/refi-calculator/commit/cdf608959014e501aa7a1e9340b7718c6fc8599e))
+
 ## [0.9.2](https://github.com/jordandpflum/refi-calculator/compare/v0.9.1...v0.9.2) (2026-01-16)
 
 ### Bug Fixes
